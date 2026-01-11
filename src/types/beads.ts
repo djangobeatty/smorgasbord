@@ -91,6 +91,16 @@ export interface Polecat {
   convoy?: string;
 }
 
+export type WitnessStatus = 'active' | 'idle' | 'stopped' | 'error';
+
+export interface Witness {
+  id: string;
+  rig: string;
+  status: WitnessStatus;
+  last_check: string;
+  unread_mail: number;
+}
+
 export type RefineryStatus = 'active' | 'idle' | 'processing' | 'error';
 
 export interface PullRequest {
