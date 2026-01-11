@@ -22,6 +22,12 @@ export default function Dashboard() {
               Polecats
             </Link>
             <Link
+              href="/control-plane"
+              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            >
+              Control Plane
+            </Link>
+            <Link
               href="/settings"
               className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
             >
