@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Issue, Convoy, Polecat, Rig, BeadsData } from '@/types/beads';
+import type { Issue, Convoy, Polecat, Witness, Rig, BeadsData } from '@/types/beads';
 
 export interface UseBeadsOptions {
   pollingInterval?: number;
@@ -45,6 +45,7 @@ export function useBeads(options: UseBeadsOptions = {}): UseBeadsResult {
         issues: result.issues ?? [],
         convoys: result.convoys ?? [],
         polecats: result.polecats ?? [],
+        witnesses: result.witnesses ?? [],
         rigs: result.rigs ?? [],
       });
       setError(null);
@@ -127,6 +128,19 @@ export function useConvoys() {
   const { data, isLoading, error, refresh } = useBeads();
   return {
     convoys: data?.convoys ?? [],
+    isLoading,
+    error,
+    refresh,
+  };
+}
+
+/**
+ * Hook for fetching just witnesses
+ */
+export function useWitnesses(rig?: string) {
+  const { data, isLoading, error, refresh } = useBeads({ rig });
+  return {
+    witnesses: data?.witnesses ?? [],
     isLoading,
     error,
     refresh,

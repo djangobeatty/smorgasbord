@@ -6,7 +6,7 @@
 
 import { NextResponse } from 'next/server';
 import { getBeadsReader } from '@/lib/beads-reader';
-import type { Issue, Rig, Polecat, Agent, RoleType, AgentState, RigState } from '@/types/beads';
+import type { Issue, Rig, Polecat, Witness, Agent, RoleType, AgentState, RigState, WitnessStatus } from '@/types/beads';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,6 +95,36 @@ export async function GET() {
         hooked_work: agent.hook_bead,
       }));
 
+    // Extract witnesses from agent issues
+    const witnesses: Witness[] = issues
+      .filter((issue) => issue.issue_type === 'agent')
+      .map((issue) => parseAgentFromIssue(issue))
+      .filter((agent): agent is Agent => agent !== null && agent.role_type === 'witness')
+      .map((agent) => {
+        const desc = issues.find((i) => i.id === agent.id)?.description ?? '';
+        const getField = (field: string): string | null => {
+          const match = desc.match(new RegExp(`${field}:\\s*(.+)`));
+          return match ? match[1].trim() : null;
+        };
+        const unreadMailStr = getField('unread_mail');
+        const lastCheck = getField('last_check');
+        const statusStr = getField('witness_status') ?? agent.agent_state;
+
+        // Map agent state to witness status
+        let witnessStatus: WitnessStatus = 'idle';
+        if (statusStr === 'active') witnessStatus = 'active';
+        else if (statusStr === 'error') witnessStatus = 'error';
+        else if (statusStr === 'stopped' || statusStr === 'done') witnessStatus = 'stopped';
+
+        return {
+          id: agent.id,
+          rig: agent.rig,
+          status: witnessStatus,
+          last_check: lastCheck ?? agent.updated_at,
+          unread_mail: unreadMailStr ? parseInt(unreadMailStr, 10) : 0,
+        };
+      });
+
     // Filter out agent issues from the main issues list for cleaner display
     const workIssues = issues.filter(
       (issue) => issue.issue_type !== 'agent' && !issue.labels?.includes('gt:rig')
@@ -104,6 +134,7 @@ export async function GET() {
       issues: workIssues,
       rigs,
       polecats,
+      witnesses,
       convoys: [], // TODO: implement convoy parsing
       timestamp: new Date().toISOString(),
     });
