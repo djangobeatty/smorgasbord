@@ -1,7 +1,12 @@
 'use client';
 
+import { useCallback } from 'react';
 import Link from 'next/link';
+import { useIssues } from '@/lib/use-beads';
+import { KanbanBoard } from '@/components/kanban';
 import { RefineriesPanel } from '@/components/refinery';
+import { DeaconPanel } from '@/components/deacon';
+import type { Issue, IssueStatus } from '@/types/beads';
 
 export default function Dashboard() {
   const { issues, isLoading, error, refresh } = useIssues();
