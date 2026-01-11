@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useIssues } from '@/lib/use-beads';
 import { KanbanBoard } from '@/components/kanban';
+import { DeaconPanel } from '@/components/deacon';
 import type { Issue, IssueStatus } from '@/types/beads';
 import { useCallback } from 'react';
 
@@ -65,6 +66,15 @@ export default function Dashboard() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Control Plane Section */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+            Control Plane
+          </h2>
+          <DeaconPanel />
+        </div>
+
+        {/* Work Status Section */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
