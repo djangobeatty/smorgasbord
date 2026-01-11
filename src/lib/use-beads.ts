@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { Issue, Convoy, Polecat, Rig, BeadsData } from '@/types/beads';
+import type { BeadsData } from '@/types/beads';
 
 export interface UseBeadsOptions {
   pollingInterval?: number;

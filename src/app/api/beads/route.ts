@@ -6,7 +6,7 @@
 
 import { NextResponse } from 'next/server';
 import { getBeadsReader } from '@/lib/beads-reader';
-import type { Issue, Rig, Polecat, Agent, RoleType, AgentState, RigState } from '@/types/beads';
+import type { Issue, Rig, Polecat, Agent, RoleType, AgentState, RigState, Convoy } from '@/types/beads';
 
 export const dynamic = 'force-dynamic';
 
@@ -70,6 +70,100 @@ function parseRigFromIssue(issue: Issue): Rig | null {
   };
 }
 
+/**
+ * Derive convoys from feature/molecule issues
+ * A convoy represents a work stream with multiple related issues
+ */
+function deriveConvoys(issues: Issue[], polecats: Polecat[]): Convoy[] {
+  const convoys: Convoy[] = [];
+
+  // Build a map of issue dependencies (what issues does each issue depend on)
+  const dependencyMap = new Map<string, string[]>();
+  for (const issue of issues) {
+    if (issue.dependencies) {
+      for (const dep of issue.dependencies) {
+        // dep.issue_id depends on dep.depends_on_id
+        const existing = dependencyMap.get(dep.depends_on_id) || [];
+        existing.push(dep.issue_id);
+        dependencyMap.set(dep.depends_on_id, existing);
+      }
+    }
+  }
+
+  // Find convoy root issues (features or molecules with dependents)
+  const convoyRoots = issues.filter(
+    (issue) =>
+      (issue.issue_type === 'feature' || issue.issue_type === 'molecule') &&
+      dependencyMap.has(issue.id)
+  );
+
+  for (const root of convoyRoots) {
+    // Collect all issues in this convoy
+    const convoyIssueIds = new Set<string>([root.id]);
+    const dependents = dependencyMap.get(root.id) || [];
+    for (const depId of dependents) {
+      convoyIssueIds.add(depId);
+    }
+
+    // Get the actual issue objects
+    const convoyIssues = issues.filter((i) => convoyIssueIds.has(i.id));
+
+    // Calculate progress
+    const completed = convoyIssues.filter((i) => i.status === 'closed').length;
+    const total = convoyIssues.length;
+
+    // Determine convoy status
+    let status: Convoy['status'] = 'active';
+    if (completed === total && total > 0) {
+      status = 'completed';
+    } else {
+      // Check if stalled (no hooked issues and not completed)
+      const hasHookedWork = convoyIssues.some((i) => i.status === 'hooked');
+      const hasInProgress = convoyIssues.some((i) => i.status === 'in_progress');
+      if (!hasHookedWork && !hasInProgress && completed < total) {
+        // Check if last update was more than 30 minutes ago
+        const lastUpdate = new Date(root.updated_at).getTime();
+        const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
+        if (lastUpdate < thirtyMinutesAgo) {
+          status = 'stalled';
+        }
+      }
+    }
+
+    // Find assignee from hooked polecat
+    let assignee: string | undefined;
+    const hookedIssue = convoyIssues.find((i) => i.status === 'hooked');
+    if (hookedIssue) {
+      // Find the polecat that has this issue hooked
+      const assignedPolecat = polecats.find(
+        (p) => p.hooked_work === hookedIssue.id
+      );
+      if (assignedPolecat) {
+        assignee = assignedPolecat.name;
+      } else if (hookedIssue.assignee) {
+        assignee = hookedIssue.assignee;
+      }
+    }
+
+    convoys.push({
+      id: root.id,
+      title: root.title,
+      issues: Array.from(convoyIssueIds),
+      status,
+      progress: { completed, total },
+      assignee,
+      created_at: root.created_at,
+      updated_at: root.updated_at,
+    });
+  }
+
+  // Sort: stalled first, then active, then completed
+  const statusOrder = { stalled: 0, active: 1, completed: 2 };
+  convoys.sort((a, b) => statusOrder[a.status] - statusOrder[b.status]);
+
+  return convoys;
+}
+
 export async function GET() {
   try {
     const reader = getBeadsReader();
@@ -100,11 +194,14 @@ export async function GET() {
       (issue) => issue.issue_type !== 'agent' && !issue.labels?.includes('gt:rig')
     );
 
+    // Derive convoys from feature/molecule issues with dependencies
+    const convoys = deriveConvoys(issues, polecats);
+
     return NextResponse.json({
       issues: workIssues,
       rigs,
       polecats,
-      convoys: [], // TODO: implement convoy parsing
+      convoys,
       timestamp: new Date().toISOString(),
     });
   } catch (error) {

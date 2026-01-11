@@ -54,6 +54,12 @@ export default function PolecatsPage() {
               Polecats
             </Link>
             <Link
+              href="/convoys"
+              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
+            >
+              Convoys
+            </Link>
+            <Link
               href="/settings"
               className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
             >
