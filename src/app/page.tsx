@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { DeaconPanel } from '@/components/deacon';
 
 export default function Dashboard() {
   return (
@@ -32,6 +35,15 @@ export default function Dashboard() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        {/* Control Plane Section */}
+        <div className="mb-8">
+          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+            Control Plane
+          </h2>
+          <DeaconPanel />
+        </div>
+
+        {/* Work Status Section */}
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
             Work Status
