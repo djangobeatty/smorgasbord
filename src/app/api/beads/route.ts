@@ -1,0 +1,117 @@
+/**
+ * API Route: GET /api/beads
+ * Returns all beads data (issues, rigs) in a single response
+ * Optimized for dashboard initial load
+ */
+
+import { NextResponse } from 'next/server';
+import { getBeadsReader } from '@/lib/beads-reader';
+import type { Issue, Rig, Polecat, Agent, RoleType, AgentState, RigState } from '@/types/beads';
+
+export const dynamic = 'force-dynamic';
+
+function parseJsonl<T>(content: string): T[] {
+  return content
+    .split('\n')
+    .filter((line) => line.trim())
+    .map((line) => {
+      try {
+        return JSON.parse(line) as T;
+      } catch {
+        return null;
+      }
+    })
+    .filter((item): item is T => item !== null);
+}
+
+function parseAgentFromIssue(issue: Issue): Agent | null {
+  if (issue.issue_type !== 'agent') return null;
+
+  const desc = issue.description;
+  const getField = (field: string): string | null => {
+    const match = desc.match(new RegExp(`${field}:\\s*(.+)`));
+    return match ? match[1].trim() : null;
+  };
+
+  const hookBead = getField('hook_bead');
+  const roleBead = getField('role_bead');
+
+  return {
+    id: issue.id,
+    title: issue.title,
+    role_type: (getField('role_type') as RoleType) ?? 'polecat',
+    rig: getField('rig') ?? '',
+    agent_state: (getField('agent_state') as AgentState) ?? 'idle',
+    hook_bead: issue.hook_bead ?? (hookBead === 'null' ? null : hookBead),
+    role_bead: issue.role_bead ?? (roleBead === 'null' ? null : roleBead),
+    cleanup_status: getField('cleanup_status'),
+    active_mr: getField('active_mr'),
+    notification_level: getField('notification_level'),
+    created_at: issue.created_at,
+    updated_at: issue.updated_at,
+  };
+}
+
+function parseRigFromIssue(issue: Issue): Rig | null {
+  if (!issue.labels?.includes('gt:rig')) return null;
+
+  const desc = issue.description;
+  const getField = (field: string): string | null => {
+    const match = desc.match(new RegExp(`${field}:\\s*(.+)`));
+    return match ? match[1].trim() : null;
+  };
+
+  return {
+    id: issue.id,
+    name: issue.title,
+    repo: getField('repo') ?? '',
+    prefix: getField('prefix') ?? '',
+    state: (getField('state') as RigState) ?? 'active',
+  };
+}
+
+export async function GET() {
+  try {
+    const reader = getBeadsReader();
+    const content = await reader.getIssuesRaw();
+    const issues = parseJsonl<Issue>(content);
+
+    // Extract rigs from issues
+    const rigs: Rig[] = issues
+      .filter((issue) => issue.labels?.includes('gt:rig'))
+      .map((issue) => parseRigFromIssue(issue))
+      .filter((rig): rig is Rig => rig !== null);
+
+    // Extract polecats from agent issues
+    const polecats: Polecat[] = issues
+      .filter((issue) => issue.issue_type === 'agent')
+      .map((issue) => parseAgentFromIssue(issue))
+      .filter((agent): agent is Agent => agent !== null && agent.role_type === 'polecat')
+      .map((agent) => ({
+        id: agent.id,
+        name: agent.title,
+        rig: agent.rig,
+        status: agent.agent_state,
+        hooked_work: agent.hook_bead,
+      }));
+
+    // Filter out agent issues from the main issues list for cleaner display
+    const workIssues = issues.filter(
+      (issue) => issue.issue_type !== 'agent' && !issue.labels?.includes('gt:rig')
+    );
+
+    return NextResponse.json({
+      issues: workIssues,
+      rigs,
+      polecats,
+      convoys: [], // TODO: implement convoy parsing
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Error fetching beads data:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch beads data' },
+      { status: 500 }
+    );
+  }
+}
