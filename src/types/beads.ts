@@ -91,9 +91,20 @@ export interface Polecat {
   convoy?: string;
 }
 
+export type WitnessStatus = 'active' | 'idle' | 'error' | 'stopped';
+
+export interface Witness {
+  id: string;
+  rig: string;
+  status: WitnessStatus;
+  last_check?: string;
+  unread_mail: number;
+}
+
 export interface BeadsData {
   issues: Issue[];
   convoys: Convoy[];
   polecats: Polecat[];
+  witnesses: Witness[];
   rigs: Rig[];
 }

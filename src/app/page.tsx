@@ -49,6 +49,12 @@ export default function Dashboard() {
               Convoys
             </Link>
             <Link
+              href="/witnesses"
+              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
+            >
+              Witnesses
+            </Link>
+            <Link
               href="/settings"
               className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
             >

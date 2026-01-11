@@ -7,12 +7,14 @@ import type {
   Issue,
   Convoy,
   Polecat,
+  Witness,
   Rig,
   Agent,
   BeadsData,
   AgentState,
   RoleType,
   RigState,
+  WitnessStatus,
 } from '@/types/beads';
 
 export interface BeadsClientConfig {
@@ -37,6 +39,7 @@ interface Cache {
   issues?: CacheEntry<Issue[]>;
   convoys?: CacheEntry<Convoy[]>;
   polecats?: CacheEntry<Polecat[]>;
+  witnesses?: CacheEntry<Witness[]>;
   rigs?: CacheEntry<Rig[]>;
 }
 
@@ -208,6 +211,49 @@ export class BeadsClient {
   }
 
   /**
+   * Get all witnesses, optionally filtered by rig
+   */
+  async getWitnesses(rig?: string): Promise<Witness[]> {
+    if (this.isCacheValid(this.cache.witnesses)) {
+      const witnesses = this.cache.witnesses!.data;
+      return rig ? witnesses.filter((w) => w.rig === rig) : witnesses;
+    }
+
+    const issues = await this.getIssues();
+    const witnesses: Witness[] = issues
+      .filter((issue) => issue.issue_type === 'agent')
+      .map((issue) => this.parseAgentFromIssue(issue))
+      .filter((agent): agent is Agent => agent !== null && agent.role_type === 'witness')
+      .map((agent) => {
+        const issue = issues.find((i) => i.id === agent.id);
+        const desc = issue?.description ?? '';
+        const getField = (field: string): string | null => {
+          const match = desc.match(new RegExp(`${field}:\\s*(.+)`));
+          return match ? match[1].trim() : null;
+        };
+        const unreadMailStr = getField('unread_mail');
+        const lastCheck = getField('last_check');
+        const statusStr = getField('witness_status') ?? agent.agent_state;
+
+        let witnessStatus: WitnessStatus = 'idle';
+        if (statusStr === 'active') witnessStatus = 'active';
+        else if (statusStr === 'error') witnessStatus = 'error';
+        else if (statusStr === 'stopped' || statusStr === 'done') witnessStatus = 'stopped';
+
+        return {
+          id: agent.id,
+          rig: agent.rig,
+          status: witnessStatus,
+          last_check: lastCheck ?? agent.updated_at,
+          unread_mail: unreadMailStr ? parseInt(unreadMailStr, 10) : 0,
+        };
+      });
+
+    this.setCache('witnesses', witnesses);
+    return rig ? witnesses.filter((w) => w.rig === rig) : witnesses;
+  }
+
+  /**
    * Get all rigs
    */
   async getRigs(): Promise<Rig[]> {
@@ -229,14 +275,15 @@ export class BeadsClient {
    * Get all data at once
    */
   async getAllData(): Promise<BeadsData> {
-    const [issues, convoys, polecats, rigs] = await Promise.all([
+    const [issues, convoys, polecats, witnesses, rigs] = await Promise.all([
       this.getIssues(),
       this.getConvoys(),
       this.getPolecats(),
+      this.getWitnesses(),
       this.getRigs(),
     ]);
 
-    return { issues, convoys, polecats, rigs };
+    return { issues, convoys, polecats, witnesses, rigs };
   }
 
   /**
