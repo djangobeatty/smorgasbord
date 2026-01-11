@@ -1,11 +1,13 @@
 'use client';
 
-import Link from 'next/link';
 import { useWitnesses, useRigs } from '@/lib/use-beads';
+import { useFeature } from '@/lib/project-mode';
 import { WitnessGrid } from '@/components/witness';
+import { NavBar } from '@/components/layout';
 import type { Witness } from '@/types/beads';
 
 export default function WitnessesPage() {
+  const hasWitnesses = useFeature('witnesses');
   const { witnesses, isLoading: witnessesLoading, error: witnessesError, refresh } = useWitnesses();
   const { rigs, isLoading: rigsLoading, error: rigsError } = useRigs();
 
@@ -58,41 +60,29 @@ export default function WitnessesPage() {
   const errorCount = witnesses.filter((w) => w.status === 'error').length;
   const totalUnreadMail = witnesses.reduce((sum, w) => sum + w.unread_mail, 0);
 
+  // Feature not available in current mode
+  if (!hasWitnesses) {
+    return (
+      <div className="min-h-screen bg-zinc-950">
+        <NavBar />
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
+            <h2 className="text-xl font-semibold text-zinc-100">
+              Witnesses Not Available
+            </h2>
+            <p className="mt-2 text-zinc-400">
+              Witness monitoring is only available in Gas Town mode.
+              This project is running in beads-only mode.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950">
-      <header className="border-b border-zinc-800 bg-zinc-900">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <h1 className="text-xl font-semibold text-zinc-100">
-            Gas Town Dashboard
-          </h1>
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/polecats"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Polecats
-            </Link>
-            <Link
-              href="/witnesses"
-              className="text-sm font-medium text-zinc-100"
-            >
-              Witnesses
-            </Link>
-            <Link
-              href="/settings"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Settings
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <NavBar />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}

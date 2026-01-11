@@ -4,3 +4,4 @@
 
 export * from './beads';
 export * from './mayor';
+export * from './project';

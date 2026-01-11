@@ -9,3 +9,13 @@ export type { BeadsClientConfig } from './beads-client';
 // React hooks (client-side only)
 export { useBeads, useIssues, usePolecats, useRigs, useConvoys } from './use-beads';
 export type { UseBeadsOptions, UseBeadsResult } from './use-beads';
+
+// Project mode context and hooks
+export {
+  ProjectModeProvider,
+  useProjectMode,
+  useFeature,
+  FeatureGate,
+  GasTownOnly,
+  BeadsOnly,
+} from './project-mode';
