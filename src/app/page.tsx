@@ -6,8 +6,6 @@ import { useIssues } from '@/lib/use-beads';
 import { KanbanBoard } from '@/components/kanban';
 import { RefineriesPanel } from '@/components/refinery';
 import { DeaconPanel } from '@/components/deacon';
-import { KanbanBoard } from '@/components/kanban';
-import { useIssues } from '@/lib/use-beads';
 import type { Issue, IssueStatus } from '@/types/beads';
 
 export default function Dashboard() {
