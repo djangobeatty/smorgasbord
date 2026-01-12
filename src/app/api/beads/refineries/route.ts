@@ -37,10 +37,20 @@ function parseJsonl<T>(content: string): T[] {
     .filter((item): item is T => item !== null);
 }
 
+async function getGasTownPath(): Promise<string> {
+  try {
+    const { stdout } = await execAsync('gt status --json', { timeout: 5000 });
+    const data = JSON.parse(stdout.trim());
+    return data.location || process.cwd();
+  } catch {
+    return process.env.GT_BASE_PATH ?? process.cwd();
+  }
+}
+
 async function getPRsForRig(rigName: string): Promise<PullRequest[]> {
   try {
     // Use gh CLI to get open PRs from the rig's directory
-    const basePath = process.env.GT_BASE_PATH ?? process.cwd();
+    const basePath = await getGasTownPath();
     const rigPath = `${basePath}/${rigName}`;
 
     const { stdout } = await execAsync(
