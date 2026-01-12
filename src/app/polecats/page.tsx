@@ -38,14 +38,14 @@ export default function PolecatsPage() {
   // Feature not available in current mode
   if (!hasPolecats) {
     return (
-      <div className="min-h-screen bg-zinc-950">
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
         <NavBar />
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
-            <h2 className="text-xl font-semibold text-zinc-100">
+            <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
               Polecats Not Available
             </h2>
-            <p className="mt-2 text-zinc-400">
+            <p className="mt-2 text-zinc-600 dark:text-zinc-400">
               Polecat monitoring is only available in Gas Town mode.
               This project is running in beads-only mode.
             </p>
@@ -56,17 +56,17 @@ export default function PolecatsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <NavBar />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8 flex items-start justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-zinc-100">
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               Polecat Status
             </h2>
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
               Monitor worker agents across all rigs
             </p>
           </div>
@@ -75,21 +75,21 @@ export default function PolecatsPage() {
           {!isLoading && !error && (
             <div className="flex items-center gap-6 text-sm">
               <div className="text-center">
-                <p className="text-2xl font-bold text-zinc-100">{totalPolecats}</p>
-                <p className="text-zinc-500">Total</p>
+                <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{totalPolecats}</p>
+                <p className="text-zinc-600 dark:text-zinc-500">Total</p>
               </div>
               <div className="text-center">
                 <p className="text-2xl font-bold text-green-400">{activeCount}</p>
-                <p className="text-zinc-500">Active</p>
+                <p className="text-zinc-600 dark:text-zinc-500">Active</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-zinc-400">{idleCount}</p>
-                <p className="text-zinc-500">Idle</p>
+                <p className="text-2xl font-bold text-zinc-600 dark:text-zinc-400">{idleCount}</p>
+                <p className="text-zinc-600 dark:text-zinc-500">Idle</p>
               </div>
               {errorCount > 0 && (
                 <div className="text-center">
                   <p className="text-2xl font-bold text-red-400">{errorCount}</p>
-                  <p className="text-zinc-500">Error</p>
+                  <p className="text-zinc-600 dark:text-zinc-500">Error</p>
                 </div>
               )}
             </div>
@@ -99,7 +99,7 @@ export default function PolecatsPage() {
         {/* Content */}
         {isLoading && (
           <div className="flex items-center justify-center py-12">
-            <div className="text-zinc-500">Loading polecats...</div>
+            <div className="text-zinc-600 dark:text-zinc-500">Loading polecats...</div>
           </div>
         )}
 
