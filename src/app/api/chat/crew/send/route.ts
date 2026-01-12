@@ -70,8 +70,8 @@ export async function POST(request: Request) {
     // Escape the message for shell safety
     const escapedMessage = message.replace(/'/g, "'\\''");
 
-    // Use gt mail send for proper mail delivery
-    const command = `gt mail send ${target} '${escapedMessage}'`;
+    // Use gt mail send with correct flag syntax
+    const command = `gt mail send ${target} -s 'Dashboard Message' -m '${escapedMessage}'`;
 
     const basePath = process.env.GT_BASE_PATH ?? process.cwd();
 
