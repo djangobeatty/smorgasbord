@@ -39,10 +39,13 @@ function parseJsonl<T>(content: string): T[] {
 
 async function getPRsForRig(rigName: string): Promise<PullRequest[]> {
   try {
-    // Use gh CLI to get open PRs
+    // Use gh CLI to get open PRs from the rig's directory
+    const basePath = process.env.GT_BASE_PATH ?? process.cwd();
+    const rigPath = `${basePath}/${rigName}`;
+
     const { stdout } = await execAsync(
       `gh pr list --json number,title,headRefName,author,createdAt,url --limit 20`,
-      { cwd: process.env.GT_BASE_PATH ?? process.cwd() }
+      { cwd: rigPath }
     );
 
     const ghPRs: GHPullRequest[] = JSON.parse(stdout || '[]');
