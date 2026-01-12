@@ -5,3 +5,4 @@
 export * from './beads';
 export * from './config';
 export * from './mayor';
+export * from './project';

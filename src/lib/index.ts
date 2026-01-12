@@ -26,3 +26,13 @@ export {
   hasGtDirectory,
   hasBeadsDirectory,
 } from './config-loader';
+
+// Project mode context and hooks
+export {
+  ProjectModeProvider,
+  useProjectMode,
+  useFeature,
+  FeatureGate,
+  GasTownOnly,
+  BeadsOnly,
+} from './project-mode';

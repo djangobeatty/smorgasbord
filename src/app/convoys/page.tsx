@@ -1,12 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useBeads } from '@/lib/use-beads';
+import { useFeature } from '@/lib/project-mode';
 import { ConvoyList, ConvoyDetail } from '@/components/convoy';
+import { NavBar } from '@/components/layout';
 import type { Convoy } from '@/types/beads';
 
 export default function ConvoysPage() {
+  const hasConvoys = useFeature('convoys');
   const { data, isLoading, error } = useBeads();
   const [selectedConvoy, setSelectedConvoy] = useState<Convoy | null>(null);
 
@@ -40,41 +42,29 @@ export default function ConvoysPage() {
   const overallProgress =
     totalIssues > 0 ? Math.round((completedIssues / totalIssues) * 100) : 0;
 
+  // Feature not available in current mode
+  if (!hasConvoys) {
+    return (
+      <div className="min-h-screen bg-zinc-950">
+        <NavBar />
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
+            <h2 className="text-xl font-semibold text-zinc-100">
+              Convoys Not Available
+            </h2>
+            <p className="mt-2 text-zinc-400">
+              Convoy tracking is only available in Gas Town mode.
+              This project is running in beads-only mode.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950">
-      <header className="border-b border-zinc-800 bg-zinc-900">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <h1 className="text-xl font-semibold text-zinc-100">
-            Gas Town Dashboard
-          </h1>
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/polecats"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Polecats
-            </Link>
-            <Link
-              href="/convoys"
-              className="text-sm font-medium text-zinc-100"
-            >
-              Convoys
-            </Link>
-            <Link
-              href="/settings"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Settings
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <NavBar />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}

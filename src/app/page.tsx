@@ -1,11 +1,12 @@
 'use client';
 
 import { useCallback } from 'react';
-import Link from 'next/link';
 import { useIssues } from '@/lib/use-beads';
+import { FeatureGate } from '@/lib/project-mode';
 import { KanbanBoard } from '@/components/kanban';
 import { RefineriesPanel } from '@/components/refinery';
 import { DeaconPanel } from '@/components/deacon';
+import { NavBar } from '@/components/layout';
 import type { Issue, IssueStatus } from '@/types/beads';
 
 export default function Dashboard() {
@@ -26,74 +27,34 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-            Gas Town Dashboard
-          </h1>
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/polecats"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              Polecats
-            </Link>
-            <Link
-              href="/convoys"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              Convoys
-            </Link>
-            <Link
-              href="/witnesses"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              Witnesses
-            </Link>
-            <Link
-              href="/control-plane"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              Control Plane
-            </Link>
-            <Link
-              href="/settings"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              Settings
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <NavBar />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Refineries Panel */}
-        <div className="mb-8">
-          <RefineriesPanel />
-        </div>
+        {/* Refineries Panel - GasTown only */}
+        <FeatureGate feature="refineries">
+          <div className="mb-8">
+            <RefineriesPanel />
+          </div>
+        </FeatureGate>
 
-        {/* Work Status Kanban */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
-            Control Plane
-          </h2>
-          <DeaconPanel />
-        </div>
+        {/* Control Plane / Deacon Panel - GasTown only */}
+        <FeatureGate feature="deacon">
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+              Control Plane
+            </h2>
+            <DeaconPanel />
+          </div>
+        </FeatureGate>
 
-        {/* Work Status Section */}
+        {/* Work Status Section - Always visible */}
         <div className="mb-6 flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
               Work Status
             </h2>
             <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-              Kanban board for visualizing Gas Town work status
+              Kanban board for visualizing work status
             </p>
           </div>
           <button

@@ -1,63 +1,70 @@
-import Link from 'next/link';
+'use client';
+
+import { useProjectMode } from '@/lib/project-mode';
+import { NavBar } from '@/components/layout';
 
 export default function Settings() {
+  const { mode, activeProject, isLoading } = useProjectMode();
+
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <header className="border-b border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-            Gas Town Dashboard
-          </h1>
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/polecats"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              Polecats
-            </Link>
-            <Link
-              href="/convoys"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              Convoys
-            </Link>
-            <Link
-              href="/witnesses"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              Witnesses
-            </Link>
-            <Link
-              href="/control-plane"
-              className="text-sm font-medium text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100"
-            >
-              Control Plane
-            </Link>
-            <Link
-              href="/settings"
-              className="text-sm font-medium text-zinc-900 dark:text-zinc-100"
-            >
-              Settings
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <NavBar />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Settings</h2>
           <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-            Configure your Gas Town Dashboard preferences
+            Configure your dashboard preferences
           </p>
         </div>
 
         <div className="space-y-6">
+          {/* Project Mode Info */}
+          <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+            <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+              Current Project
+            </h3>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              Project mode determines which features are available
+            </p>
+            <div className="mt-4 space-y-3">
+              {isLoading ? (
+                <p className="text-sm text-zinc-500">Loading...</p>
+              ) : (
+                <>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                      Mode:
+                    </span>
+                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                      mode === 'gastown'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
+                        : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                    }`}>
+                      {mode === 'gastown' ? 'Gas Town (Full)' : 'Beads Only'}
+                    </span>
+                  </div>
+                  {activeProject && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                        Project:
+                      </span>
+                      <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                        {activeProject.name}
+                      </span>
+                    </div>
+                  )}
+                  <p className="text-xs text-zinc-500 dark:text-zinc-500 mt-2">
+                    {mode === 'gastown'
+                      ? 'All features enabled: Polecats, Witnesses, Refineries, Convoys, Control Plane'
+                      : 'Limited features: Kanban board only. Gas Town features are hidden.'}
+                  </p>
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* Data Source */}
           <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
               Data Source
@@ -84,6 +91,7 @@ export default function Settings() {
             </div>
           </div>
 
+          {/* Display */}
           <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
             <h3 className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
               Display

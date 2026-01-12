@@ -1,55 +1,36 @@
-import Link from 'next/link';
+'use client';
+
+import { useFeature } from '@/lib/project-mode';
 import { ChatInterface } from '@/components/chat';
 import { MayorPanel } from '@/components/control-plane';
+import { NavBar } from '@/components/layout';
 
 export default function ControlPlanePage() {
+  const hasControlPlane = useFeature('controlPlane');
+
+  // Feature not available in current mode
+  if (!hasControlPlane) {
+    return (
+      <div className="min-h-screen bg-zinc-950">
+        <NavBar />
+        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-8 text-center">
+            <h2 className="text-xl font-semibold text-zinc-100">
+              Control Plane Not Available
+            </h2>
+            <p className="mt-2 text-zinc-400">
+              The Control Plane is only available in Gas Town mode.
+              This project is running in beads-only mode.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-zinc-950">
-      <header className="border-b border-zinc-800 bg-zinc-900">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-          <h1 className="text-xl font-semibold text-zinc-100">
-            Gas Town Dashboard
-          </h1>
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/polecats"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Polecats
-            </Link>
-            <Link
-              href="/convoys"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Convoys
-            </Link>
-            <Link
-              href="/witnesses"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Witnesses
-            </Link>
-            <Link
-              href="/control-plane"
-              className="text-sm font-medium text-zinc-100"
-            >
-              Control Plane
-            </Link>
-            <Link
-              href="/settings"
-              className="text-sm font-medium text-zinc-400 hover:text-zinc-100"
-            >
-              Settings
-            </Link>
-          </nav>
-        </div>
-      </header>
+      <NavBar />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
