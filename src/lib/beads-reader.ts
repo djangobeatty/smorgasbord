@@ -1,11 +1,15 @@
 /**
- * Server-side beads file reader
- * Reads beads data directly from the filesystem
+ * Server-side beads data reader
+ * Queries the beads daemon for live data
  * Only use in server context (API routes, Server Components)
  */
 
 import { promises as fs } from 'fs';
 import path from 'path';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
 
 export interface BeadsReaderConfig {
   beadsPath: string;
@@ -58,13 +62,34 @@ export async function discoverRigs(basePath: string): Promise<string[]> {
 }
 
 /**
- * Read issues.jsonl from a specific beads directory
- * Follows redirect files if present
+ * Query the beads daemon for live issue data
+ * This replaces reading from stale issues.jsonl
  */
-export async function readIssuesJsonl(beadsPath: string): Promise<string> {
+export async function queryBeadsDaemon(beadsPath: string): Promise<string> {
   // Resolve any redirect files first
   const resolvedPath = await resolveBeadsPath(beadsPath);
-  const issuesPath = path.join(resolvedPath, 'issues.jsonl');
+
+  try {
+    // Run bd list --json from the beads directory to get live data
+    const { stdout } = await execAsync('bd list --json', {
+      cwd: resolvedPath,
+      timeout: 10000, // 10 second timeout
+    });
+
+    return stdout;
+  } catch (error) {
+    console.error(`Error querying beads daemon at ${resolvedPath}:`, error);
+    // Fall back to reading issues.jsonl if bd command fails
+    return readIssuesJsonlFallback(resolvedPath);
+  }
+}
+
+/**
+ * Fallback: Read issues.jsonl from a specific beads directory
+ * Used when bd daemon is unavailable
+ */
+async function readIssuesJsonlFallback(beadsPath: string): Promise<string> {
+  const issuesPath = path.join(beadsPath, 'issues.jsonl');
   try {
     return await fs.readFile(issuesPath, 'utf-8');
   } catch (error) {
@@ -74,14 +99,26 @@ export async function readIssuesJsonl(beadsPath: string): Promise<string> {
 }
 
 /**
+ * Read issues.jsonl from a specific beads directory
+ * Follows redirect files if present
+ * @deprecated Use queryBeadsDaemon instead for live data
+ */
+export async function readIssuesJsonl(beadsPath: string): Promise<string> {
+  // Now delegates to queryBeadsDaemon for live data
+  return queryBeadsDaemon(beadsPath);
+}
+
+/**
  * Read and aggregate issues from multiple rigs
+ * Queries the beads daemon for live data from each rig
  */
 export async function readAllIssues(rigPaths: Record<string, string>): Promise<string> {
   const allLines: string[] = [];
 
   for (const [rigName, beadsPath] of Object.entries(rigPaths)) {
     try {
-      const content = await readIssuesJsonl(beadsPath);
+      // Query daemon for live data
+      const content = await queryBeadsDaemon(beadsPath);
       const lines = content.split('\n').filter((line) => line.trim());
 
       // Add rig context to each issue
