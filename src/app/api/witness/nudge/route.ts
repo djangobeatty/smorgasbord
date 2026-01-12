@@ -1,7 +1,7 @@
 /**
  * API Route: POST /api/witness/nudge
  * Nudges a witness for a specific rig
- * Executes: gt nudge <rig>/witness
+ * Executes: gt nudge <rig>/witness -m <message>
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -12,10 +12,12 @@ const execAsync = promisify(exec);
 
 export const dynamic = 'force-dynamic';
 
+const DEFAULT_NUDGE_MESSAGE = 'Dashboard nudge: Please check for updates';
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { rig } = body;
+    const { rig, message } = body;
 
     if (!rig || typeof rig !== 'string') {
       return NextResponse.json(
@@ -33,7 +35,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { stdout, stderr } = await execAsync(`gt nudge ${sanitizedRig}/witness`);
+    // Use provided message or default, escape for shell safety
+    const nudgeMessage = (typeof message === 'string' && message.trim())
+      ? message.trim()
+      : DEFAULT_NUDGE_MESSAGE;
+    const escapedMessage = nudgeMessage.replace(/'/g, "'\\''");
+
+    const { stdout, stderr } = await execAsync(
+      `gt nudge ${sanitizedRig}/witness -m '${escapedMessage}'`
+    );
 
     return NextResponse.json({
       success: true,
