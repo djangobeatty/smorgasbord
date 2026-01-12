@@ -15,6 +15,22 @@ interface DeaconStatus {
   error_logs: string[];
 }
 
+interface OrphanedBead {
+  id: string;
+  title?: string;
+  polecat?: string;
+  rig?: string;
+  reason: string;
+}
+
+interface SweepPreview {
+  orphaned_beads: OrphanedBead[];
+  summary: {
+    total_orphaned: number;
+    would_close: number;
+  };
+}
+
 interface DeaconPanelProps {
   pollingInterval?: number;
 }
@@ -60,6 +76,9 @@ export function DeaconPanel({ pollingInterval = 5000 }: DeaconPanelProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionPending, setActionPending] = useState(false);
+  const [sweepPreview, setSweepPreview] = useState<SweepPreview | null>(null);
+  const [sweepPending, setSweepPending] = useState(false);
+  const [sweepResult, setSweepResult] = useState<{ closed: number; errors: number } | null>(null);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -104,6 +123,52 @@ export function DeaconPanel({ pollingInterval = 5000 }: DeaconPanelProps) {
     }
   };
 
+  const handleSweepPreview = async () => {
+    setSweepPending(true);
+    setSweepResult(null);
+    try {
+      const response = await fetch('/api/deacon/sweep');
+      if (!response.ok) {
+        throw new Error('Failed to preview orphaned beads');
+      }
+      const data = await response.json();
+      setSweepPreview(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sweep preview failed');
+    } finally {
+      setSweepPending(false);
+    }
+  };
+
+  const handleSweepExecute = async () => {
+    setSweepPending(true);
+    try {
+      const response = await fetch('/api/deacon/sweep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const result = await response.json();
+      setSweepResult({
+        closed: result.summary?.closed ?? 0,
+        errors: result.summary?.errors ?? 0,
+      });
+      setSweepPreview(null);
+      if (!result.success) {
+        setError(result.error || 'Some beads failed to close');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Sweep execution failed');
+    } finally {
+      setSweepPending(false);
+    }
+  };
+
+  const handleSweepCancel = () => {
+    setSweepPreview(null);
+    setSweepResult(null);
+  };
+
   if (isLoading && !status) {
     return (
       <div className="rounded-lg border border-zinc-800 bg-zinc-900 p-4">
@@ -141,6 +206,13 @@ export function DeaconPanel({ pollingInterval = 5000 }: DeaconPanelProps) {
 
         {/* Control Buttons */}
         <div className="flex gap-2">
+          <button
+            onClick={handleSweepPreview}
+            disabled={sweepPending || actionPending}
+            className="px-3 py-1.5 text-xs rounded bg-purple-900/50 hover:bg-purple-800/50 text-purple-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {sweepPending ? 'Scanning...' : 'Sweep Orphans'}
+          </button>
           {status?.alive ? (
             <button
               onClick={() => handleControl('restart')}
@@ -164,6 +236,72 @@ export function DeaconPanel({ pollingInterval = 5000 }: DeaconPanelProps) {
       {error && (
         <div className="mb-4 p-2 rounded bg-red-900/30 border border-red-500/30 text-red-400 text-sm">
           {error}
+        </div>
+      )}
+
+      {/* Sweep Preview */}
+      {sweepPreview && (
+        <div className="mb-4 p-3 rounded bg-purple-900/20 border border-purple-500/30">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="text-sm font-medium text-purple-300">
+              Orphaned Beads Found: {sweepPreview.summary.total_orphaned}
+            </h4>
+            <div className="flex gap-2">
+              <button
+                onClick={handleSweepCancel}
+                className="px-2 py-1 text-xs rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 transition-colors"
+              >
+                Cancel
+              </button>
+              {sweepPreview.summary.total_orphaned > 0 && (
+                <button
+                  onClick={handleSweepExecute}
+                  disabled={sweepPending}
+                  className="px-2 py-1 text-xs rounded bg-purple-700 hover:bg-purple-600 text-white transition-colors disabled:opacity-50"
+                >
+                  {sweepPending ? 'Closing...' : 'Close All'}
+                </button>
+              )}
+            </div>
+          </div>
+          {sweepPreview.orphaned_beads.length > 0 ? (
+            <div className="max-h-32 overflow-y-auto">
+              {sweepPreview.orphaned_beads.map((bead, idx) => (
+                <div
+                  key={idx}
+                  className="py-1 text-xs font-mono text-purple-200 border-b border-purple-500/10 last:border-0"
+                >
+                  <span className="text-purple-400">{bead.id}</span>
+                  {bead.title && <span className="text-zinc-400 ml-2">{bead.title}</span>}
+                  {bead.polecat && (
+                    <span className="text-zinc-500 ml-2">({bead.polecat})</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-xs text-purple-400">No orphaned beads found</div>
+          )}
+        </div>
+      )}
+
+      {/* Sweep Result */}
+      {sweepResult && (
+        <div className="mb-4 p-3 rounded bg-green-900/20 border border-green-500/30">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-green-300">
+              Sweep complete: {sweepResult.closed} closed
+              {sweepResult.errors > 0 && (
+                <span className="text-red-400 ml-2">({sweepResult.errors} errors)</span>
+              )}
+            </div>
+            <button
+              onClick={handleSweepCancel}
+              className="px-2 py-1 text-xs rounded bg-zinc-700 hover:bg-zinc-600 text-zinc-300 transition-colors"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
