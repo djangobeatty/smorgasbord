@@ -40,6 +40,7 @@ export const MODE_FEATURES: Record<ResolvedMode, {
   deacon: boolean;
   mayor: boolean;
   chat: boolean;
+  crew: boolean;
   kanban: boolean;
   settings: boolean;
 }> = {
@@ -52,6 +53,7 @@ export const MODE_FEATURES: Record<ResolvedMode, {
     deacon: true,
     mayor: true,
     chat: true,
+    crew: true,
     kanban: true,
     settings: true,
   },
@@ -64,6 +66,7 @@ export const MODE_FEATURES: Record<ResolvedMode, {
     deacon: false,
     mayor: false,
     chat: false,
+    crew: false,
     kanban: true,
     settings: true,
   },
@@ -84,6 +87,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/polecats', label: 'Polecats', feature: 'polecats' },
   { href: '/convoys', label: 'Convoys', feature: 'convoys' },
   { href: '/witnesses', label: 'Witnesses', feature: 'witnesses' },
+  { href: '/crew', label: 'Crew', feature: 'crew' },
   { href: '/control-plane', label: 'Control Plane', feature: 'controlPlane' },
   { href: '/settings', label: 'Settings' },
 ];
