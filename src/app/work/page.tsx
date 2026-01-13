@@ -7,6 +7,7 @@ import { KanbanBoard, IssueDetailModal } from '@/components/kanban';
 import { ConvoyList, ConvoyContextMenu, ConvoyDetailModal } from '@/components/convoy';
 import { NavBar } from '@/components/layout';
 import { AlertModal } from '@/components/settings';
+import { FeatureGate } from '@/lib/project-mode';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -261,6 +262,7 @@ function WorkPageContent() {
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Convoys Section */}
+        <FeatureGate feature="convoys">
         {(convoysLoading || convoys.length > 0) && (
           <div className="mb-8">
             <div className="mb-6 flex items-start justify-between">
@@ -403,80 +405,83 @@ function WorkPageContent() {
             )}
           </div>
         )}
+        </FeatureGate>
 
         {/* Convoy Context Menu */}
-        <ConvoyContextMenu
-          convoy={contextMenuConvoy}
-          position={contextMenuPosition}
-          onClose={handleCloseContextMenu}
-          onViewDetails={(convoy) => setSelectedConvoy(convoy)}
-          onNudge={handleNudge}
-          onEscalate={handleEscalateFromMenu}
-        />
+        <FeatureGate feature="convoys">
+          <ConvoyContextMenu
+            convoy={contextMenuConvoy}
+            position={contextMenuPosition}
+            onClose={handleCloseContextMenu}
+            onViewDetails={(convoy) => setSelectedConvoy(convoy)}
+            onNudge={handleNudge}
+            onEscalate={handleEscalateFromMenu}
+          />
 
-        {/* Convoy Detail Modal */}
-        <ConvoyDetailModal
-          convoy={selectedConvoy}
-          issues={issues}
-          onClose={() => {
-            setSelectedConvoy(null);
-            router.push('/work');
-          }}
-          onNudge={handleNudge}
-          onEscalate={handleEscalateFromMenu}
-          onIssueClick={handleIssueClickFromConvoy}
-        />
-
-        {/* Escalation Modal */}
-        {escalateConvoy && (
-          <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-            onClick={() => {
-              setEscalateConvoy(null);
-              setEscalateMessage('');
+          {/* Convoy Detail Modal */}
+          <ConvoyDetailModal
+            convoy={selectedConvoy}
+            issues={issues}
+            onClose={() => {
+              setSelectedConvoy(null);
+              router.push('/work');
             }}
-          >
+            onNudge={handleNudge}
+            onEscalate={handleEscalateFromMenu}
+            onIssueClick={handleIssueClickFromConvoy}
+          />
+
+          {/* Escalation Modal */}
+          {escalateConvoy && (
             <div
-              className="bg-card rounded-lg p-6 max-w-md w-full mx-4 border border-border"
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+              onClick={() => {
+                setEscalateConvoy(null);
+                setEscalateMessage('');
+              }}
             >
-              <h3 className="text-lg font-semibold text-foreground mb-2">
-                Escalate to Mayor
-              </h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Convoy: {escalateConvoy.title}
-              </p>
-              <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Optional Message
-              </label>
-              <Textarea
-                value={escalateMessage}
-                onChange={(e) => setEscalateMessage(e.target.value)}
-                placeholder="Add context about why this needs attention..."
-                rows={4}
-                className="resize-none"
-              />
-              <div className="flex gap-2 mt-4">
-                <Button
-                  onClick={handleSendEscalation}
-                  className="flex-1 bg-amber-500 hover:bg-amber-600"
-                >
-                  Send Escalation
-                </Button>
-                <Button
-                  variant="secondary"
-                  onClick={() => {
-                    setEscalateConvoy(null);
-                    setEscalateMessage('');
-                  }}
-                  className="flex-1"
-                >
-                  Cancel
-                </Button>
+              <div
+                className="bg-card rounded-lg p-6 max-w-md w-full mx-4 border border-border"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="text-lg font-semibold text-foreground mb-2">
+                  Escalate to Mayor
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Convoy: {escalateConvoy.title}
+                </p>
+                <label className="block text-sm font-medium text-muted-foreground mb-2">
+                  Optional Message
+                </label>
+                <Textarea
+                  value={escalateMessage}
+                  onChange={(e) => setEscalateMessage(e.target.value)}
+                  placeholder="Add context about why this needs attention..."
+                  rows={4}
+                  className="resize-none"
+                />
+                <div className="flex gap-2 mt-4">
+                  <Button
+                    onClick={handleSendEscalation}
+                    className="flex-1 bg-amber-500 hover:bg-amber-600"
+                  >
+                    Send Escalation
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setEscalateConvoy(null);
+                      setEscalateMessage('');
+                    }}
+                    className="flex-1"
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </FeatureGate>
 
         {/* Work Status Section */}
         <div ref={kanbanRef} className="mb-6 flex items-center justify-between">

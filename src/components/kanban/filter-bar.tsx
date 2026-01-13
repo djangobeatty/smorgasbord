@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils';
 import { Select } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { useProjectMode } from '@/lib/project-mode';
 import type { Priority } from '@/types/beads';
 
 interface FilterBarProps {
@@ -36,6 +37,8 @@ export function FilterBar({
   onPriorityChange,
   onClearFilters,
 }: FilterBarProps) {
+  const { isBeadsOnly } = useProjectMode();
+
   const hasActiveFilters =
     selectedRig !== null ||
     selectedAssignee !== null ||
@@ -56,19 +59,21 @@ export function FilterBar({
 
   return (
     <div className="flex flex-wrap items-center gap-3">
-      {/* Rig Filter */}
-      <div className="flex items-center gap-2">
-        <label className="text-xs font-medium text-muted-foreground">
-          Rig
-        </label>
-        <Select
-          value={selectedRig ?? ''}
-          onChange={(value) => onRigChange(value || null)}
-          options={rigOptions}
-          placeholder="All rigs"
-          className="w-32"
-        />
-      </div>
+      {/* Rig Filter - only show in Gas Town mode */}
+      {!isBeadsOnly && (
+        <div className="flex items-center gap-2">
+          <label className="text-xs font-medium text-muted-foreground">
+            Rig
+          </label>
+          <Select
+            value={selectedRig ?? ''}
+            onChange={(value) => onRigChange(value || null)}
+            options={rigOptions}
+            placeholder="All rigs"
+            className="w-32"
+          />
+        </div>
+      )}
 
       {/* Assignee Filter */}
       <div className="flex items-center gap-2">

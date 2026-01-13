@@ -34,6 +34,11 @@ export interface ProjectConfig {
 export type VisualTheme = 'corporate' | 'smorgasbord';
 
 /**
+ * Feature mode: gastown (full features) or beads-only (kanban only)
+ */
+export type FeatureMode = 'gastown' | 'beads-only';
+
+/**
  * Dashboard display preferences
  */
 export interface DisplayPreferences {
@@ -45,6 +50,8 @@ export interface DisplayPreferences {
   autoRefresh?: boolean;
   /** Visual theme preference */
   theme?: VisualTheme;
+  /** Feature mode: gastown (full) or beads-only (kanban only) */
+  featureMode?: FeatureMode;
   /** Collapsed sections in UI */
   collapsedSections?: string[];
 }
@@ -87,6 +94,7 @@ export const DEFAULT_CONFIG: DashboardConfig = {
     pollingInterval: 5000,
     autoRefresh: true,
     theme: 'corporate',
+    featureMode: 'gastown',
   },
 };
 

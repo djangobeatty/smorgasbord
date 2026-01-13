@@ -1,11 +1,12 @@
 /**
  * API Route: /api/gt-info
  * GET - Returns information about the Gas Town configuration
- * PUT - Updates GT_BASE_PATH in .env.local
+ * PUT - Updates GT_BASE_PATH or BEADS_PATH in .env.local
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getResolvedGtRoot } from '@/lib/exec-gt';
+import { getBeadsPath, getRigPaths } from '@/lib/beads-reader';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 
@@ -17,10 +18,28 @@ export async function GET() {
   try {
     const gtRoot = getResolvedGtRoot();
 
+    // Get the resolved beads path (env var or fallback)
+    const resolvedBeadsPath = getBeadsPath();
+    const rigPaths = getRigPaths();
+
+    // Determine beads source
+    let beadsSource = 'not configured';
+    if (process.env.BEADS_PATH) {
+      beadsSource = 'BEADS_PATH env var';
+    } else if (Object.keys(rigPaths).length > 0) {
+      beadsSource = 'auto-detected from rigs';
+    } else {
+      beadsSource = 'relative path fallback';
+    }
+
     return NextResponse.json({
       gtRoot,
       source: gtRoot ? 'GT_BASE_PATH' : 'not configured',
       envVar: process.env.GT_BASE_PATH || null,
+      beadsPath: process.env.BEADS_PATH || null,
+      resolvedBeadsPath,
+      beadsSource,
+      rigPaths,
       configured: gtRoot !== null,
     });
   } catch (error) {
@@ -34,14 +53,7 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const { gtBasePath } = await request.json();
-
-    if (typeof gtBasePath !== 'string') {
-      return NextResponse.json(
-        { error: 'gtBasePath must be a string' },
-        { status: 400 }
-      );
-    }
+    const { gtBasePath, beadsPath } = await request.json();
 
     // Read existing .env.local or start fresh
     let envContent = '';
@@ -68,11 +80,22 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    // Update GT_BASE_PATH
-    if (gtBasePath.trim()) {
-      envVars['GT_BASE_PATH'] = gtBasePath.trim();
-    } else {
-      delete envVars['GT_BASE_PATH'];
+    // Update GT_BASE_PATH if provided
+    if (gtBasePath !== undefined) {
+      if (typeof gtBasePath === 'string' && gtBasePath.trim()) {
+        envVars['GT_BASE_PATH'] = gtBasePath.trim();
+      } else {
+        delete envVars['GT_BASE_PATH'];
+      }
+    }
+
+    // Update BEADS_PATH if provided
+    if (beadsPath !== undefined) {
+      if (typeof beadsPath === 'string' && beadsPath.trim()) {
+        envVars['BEADS_PATH'] = beadsPath.trim();
+      } else {
+        delete envVars['BEADS_PATH'];
+      }
     }
 
     // Rebuild .env.local content

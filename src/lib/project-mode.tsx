@@ -66,39 +66,23 @@ export function ProjectModeProvider({
   const [error, setError] = useState<Error | null>(null);
   const [detectedMode, setDetectedMode] = useState<ResolvedMode | null>(null);
 
-  // Load config from API
+  const FEATURE_MODE_KEY = 'smorgasbord-feature-mode';
+
+  // Load feature mode from localStorage
   useEffect(() => {
-    async function loadConfig() {
-      try {
-        const response = await fetch('/api/config');
-        if (response.ok) {
-          const data = await response.json();
-          setConfig(data);
-          // Set active project from config or use default
-          const defaultProject = data.projects?.find((p: ProjectConfig) => p.default);
-          setActiveProjectName(data.activeProject || defaultProject?.name || null);
-        } else if (response.status === 404) {
-          // No config file - auto-detect mode
-          await detectMode();
-        } else {
-          throw new Error('Failed to load config');
-        }
-      } catch (err) {
-        // Config not available - auto-detect mode
-        await detectMode();
-      } finally {
-        setIsLoading(false);
+    try {
+      const stored = localStorage.getItem(FEATURE_MODE_KEY);
+      if (stored === 'gastown' || stored === 'beads-only') {
+        setDetectedMode(stored);
+      } else {
+        setDetectedMode('gastown');
       }
-    }
-
-    async function detectMode() {
-      // This dashboard is designed for Gas Town - always use gastown mode
-      // The beads-only mode was intended for standalone beads usage but
-      // this dashboard is specifically built for multi-rig Gas Town environments
+    } catch (err) {
+      console.error('Failed to load feature mode from localStorage:', err);
       setDetectedMode('gastown');
+    } finally {
+      setIsLoading(false);
     }
-
-    loadConfig();
   }, []);
 
   // Resolve the active project

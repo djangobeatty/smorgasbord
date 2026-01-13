@@ -217,9 +217,11 @@ export function validateConfig(config: unknown): ConfigValidation {
           (typeof display.pollingInterval !== 'number' || display.pollingInterval < 1000)) {
         errors.push({ field: 'display.pollingInterval', message: 'Polling interval must be at least 1000ms' });
       }
-      if (display.theme !== undefined &&
-          !['light', 'dark', 'system'].includes(display.theme as string)) {
-        errors.push({ field: 'display.theme', message: 'Theme must be "light", "dark", or "system"' });
+      // Theme validation - allow old values for backwards compatibility
+      // Theme is handled by theme-provider and stored in localStorage anyway
+      if (display.featureMode !== undefined &&
+          !['gastown', 'beads-only'].includes(display.featureMode as string)) {
+        errors.push({ field: 'display.featureMode', message: 'Feature mode must be "gastown" or "beads-only"' });
       }
     }
   }

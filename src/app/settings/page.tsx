@@ -4,18 +4,22 @@ import { useState, useEffect } from 'react';
 import { NavBar } from '@/components/layout';
 import { useRigs } from '@/lib/use-rigs';
 import { useTheme } from '@/lib/theme-provider';
+import { useProjectMode } from '@/lib/project-mode';
 import { RigCard } from '@/components/settings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import type { VisualTheme } from '@/types/config';
+import type { VisualTheme, FeatureMode } from '@/types/config';
 
 interface GtInfo {
   gtRoot: string;
   source: string;
   envVar: string | null;
+  beadsPath: string | null;
+  resolvedBeadsPath: string;
+  beadsSource: string;
 }
 
 export default function Settings() {
@@ -32,6 +36,7 @@ export default function Settings() {
   } = useRigs();
 
   const { theme, setTheme } = useTheme();
+  const { isBeadsOnly } = useProjectMode();
 
   // GT info state
   const [gtInfo, setGtInfo] = useState<GtInfo | null>(null);
@@ -41,6 +46,12 @@ export default function Settings() {
   const [savingGtPath, setSavingGtPath] = useState(false);
   const [gtPathSaved, setGtPathSaved] = useState(false);
 
+  // Beads path state (for beads-only mode)
+  const [beadsPathInput, setBeadsPathInput] = useState('');
+  const [beadsPathDirty, setBeadsPathDirty] = useState(false);
+  const [savingBeadsPath, setSavingBeadsPath] = useState(false);
+  const [beadsPathSaved, setBeadsPathSaved] = useState(false);
+
   // Add rig form state
   const [showAddForm, setShowAddForm] = useState(false);
   const [newRigName, setNewRigName] = useState('');
@@ -48,6 +59,11 @@ export default function Settings() {
   const [newRigPrefix, setNewRigPrefix] = useState('');
   const [addingRig, setAddingRig] = useState(false);
   const [addRigError, setAddRigError] = useState<string | null>(null);
+
+  // Feature mode state
+  const [featureMode, setFeatureMode] = useState<FeatureMode>('gastown');
+  const [modeSaved, setModeSaved] = useState(false);
+  const FEATURE_MODE_KEY = 'smorgasbord-feature-mode';
 
   // Fetch GT info on mount
   useEffect(() => {
@@ -58,6 +74,7 @@ export default function Settings() {
           const data = await response.json();
           setGtInfo(data);
           setGtPathInput(data.envVar || data.gtRoot || '');
+          setBeadsPathInput(data.beadsPath || data.resolvedBeadsPath || '');
         }
       } catch (err) {
         console.error('Failed to fetch GT info:', err);
@@ -67,6 +84,29 @@ export default function Settings() {
     }
     fetchGtInfo();
   }, []);
+
+  // Load feature mode from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(FEATURE_MODE_KEY);
+      if (stored === 'gastown' || stored === 'beads-only') {
+        setFeatureMode(stored);
+      }
+    } catch (err) {
+      console.error('Failed to load feature mode:', err);
+    }
+  }, []);
+
+  const handleFeatureModeChange = (value: FeatureMode) => {
+    setFeatureMode(value);
+    setModeSaved(false);
+    try {
+      localStorage.setItem(FEATURE_MODE_KEY, value);
+      setModeSaved(true);
+    } catch (err) {
+      console.error('Failed to save feature mode:', err);
+    }
+  };
 
   const handleGtPathChange = (value: string) => {
     setGtPathInput(value);
@@ -90,6 +130,31 @@ export default function Settings() {
       console.error('Failed to save GT path:', err);
     } finally {
       setSavingGtPath(false);
+    }
+  };
+
+  const handleBeadsPathChange = (value: string) => {
+    setBeadsPathInput(value);
+    setBeadsPathDirty(value !== (gtInfo?.beadsPath || ''));
+    setBeadsPathSaved(false);
+  };
+
+  const handleSaveBeadsPath = async () => {
+    setSavingBeadsPath(true);
+    try {
+      const response = await fetch('/api/gt-info', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ beadsPath: beadsPathInput }),
+      });
+      if (response.ok) {
+        setBeadsPathDirty(false);
+        setBeadsPathSaved(true);
+      }
+    } catch (err) {
+      console.error('Failed to save beads path:', err);
+    } finally {
+      setSavingBeadsPath(false);
     }
   };
 
@@ -136,7 +201,8 @@ export default function Settings() {
         )}
 
         <div className="space-y-6">
-          {/* Rigs Section */}
+          {/* Rigs Section - Gas Town only */}
+          {!isBeadsOnly && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
               <div>
@@ -227,6 +293,7 @@ export default function Settings() {
               )}
             </CardContent>
           </Card>
+          )}
 
           {/* Display Settings Section */}
           <Card>
@@ -236,7 +303,7 @@ export default function Settings() {
                 Configure the dashboard appearance
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="theme">Visual Theme</Label>
                 <Select
@@ -252,10 +319,84 @@ export default function Settings() {
                   Corporate is the default clean look. Smorgasbord is... different.
                 </p>
               </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="feature-mode">Dashboard Mode</Label>
+                <Select
+                  value={featureMode}
+                  onChange={(value) => handleFeatureModeChange(value as FeatureMode)}
+                  options={[
+                    { value: 'gastown', label: 'Gas Town' },
+                    { value: 'beads-only', label: 'Beads Only' },
+                  ]}
+                  className="max-w-xs"
+                />
+                {modeSaved && (
+                  <p className="text-sm text-chart-2">
+                    Mode saved. Refresh the page to apply changes.
+                  </p>
+                )}
+                <p className="text-xs text-muted-foreground">
+                  Gas Town shows all features (Mayor, Crew, Polecats, Witnesses, etc.).
+                  Beads Only shows just the kanban board for issue tracking.
+                </p>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Gas Town Path Configuration */}
+          {/* Beads Path Configuration - Beads Only mode */}
+          {isBeadsOnly && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Beads Path</CardTitle>
+              <CardDescription>
+                Path to your .beads directory (contains beads.db)
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {gtInfoLoading ? (
+                <div className="py-2 text-muted-foreground">Loading...</div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="beads-path">BEADS_PATH</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="text"
+                        id="beads-path"
+                        value={beadsPathInput}
+                        onChange={(e) => handleBeadsPathChange(e.target.value)}
+                        placeholder="/path/to/your/project/.beads"
+                        className="max-w-lg font-mono"
+                      />
+                      <Button
+                        onClick={handleSaveBeadsPath}
+                        disabled={!beadsPathDirty || savingBeadsPath}
+                        size="sm"
+                      >
+                        {savingBeadsPath ? 'Saving...' : 'Save'}
+                      </Button>
+                    </div>
+                    {beadsPathSaved && (
+                      <p className="text-sm text-amber-600 dark:text-amber-400">
+                        Saved to .env.local. Restart the server for changes to take effect.
+                      </p>
+                    )}
+                    {gtInfo && gtInfo.resolvedBeadsPath && (
+                      <p className="text-xs text-muted-foreground">
+                        Currently using: {gtInfo.resolvedBeadsPath}
+                        {gtInfo.beadsSource && ` (${gtInfo.beadsSource})`}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+          )}
+
+          {/* Gas Town Path Configuration - Gas Town only */}
+          {!isBeadsOnly && (
           <Card>
             <CardHeader>
               <CardTitle>Gas Town Path</CardTitle>
@@ -302,6 +443,7 @@ export default function Settings() {
               )}
             </CardContent>
           </Card>
+          )}
 
           {/* Configuration Info */}
           <Card>
@@ -312,12 +454,22 @@ export default function Settings() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground">Rig Source:</span>
-                <span className="font-mono text-foreground">
-                  mayor/rigs.json
-                </span>
-              </div>
+              {!isBeadsOnly && (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Rig Source:</span>
+                  <span className="font-mono text-foreground">
+                    mayor/rigs.json
+                  </span>
+                </div>
+              )}
+              {isBeadsOnly && gtInfo && (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground">Beads Database:</span>
+                  <span className="font-mono text-foreground">
+                    {gtInfo.resolvedBeadsPath}
+                  </span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">Environment Config:</span>
                 <span className="font-mono text-foreground">
