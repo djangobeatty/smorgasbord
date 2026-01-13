@@ -12,6 +12,7 @@ interface SendMailRequest {
   to: string;
   subject?: string;
   body: string;
+  replyTo?: string; // Message ID to reply to (for threading)
 }
 
 export async function POST(request: NextRequest) {
@@ -53,16 +54,23 @@ export async function POST(request: NextRequest) {
     // Escape for shell safety
     const escapedTo = to.replace(/'/g, "'\\''");
     const escapedBody = body.replace(/'/g, "'\\''");
+    const replyTo = requestBody.replyTo?.trim();
 
     try {
       // Execute gt mail send command
-      // Format: gt mail send <recipient> [-s '<subject>'] -m '<body>'
+      // Format: gt mail send <recipient> [-s '<subject>'] -m '<body>' [--reply-to <id>] [--type reply]
       let cmd = `gt mail send '${escapedTo}'`;
       if (subject) {
         const escapedSubject = subject.replace(/'/g, "'\\''");
         cmd += ` -s '${escapedSubject}'`;
       }
       cmd += ` -m '${escapedBody}'`;
+
+      // Add reply-to for threading
+      if (replyTo) {
+        const escapedReplyTo = replyTo.replace(/'/g, "'\\''");
+        cmd += ` --reply-to '${escapedReplyTo}' --type reply`;
+      }
 
       const { stdout, stderr } = await execGt(cmd,
         {

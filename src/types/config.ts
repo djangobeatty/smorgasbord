@@ -29,6 +29,11 @@ export interface ProjectConfig {
 }
 
 /**
+ * Available visual themes
+ */
+export type VisualTheme = 'corporate' | 'smorgasbord';
+
+/**
  * Dashboard display preferences
  */
 export interface DisplayPreferences {
@@ -38,8 +43,8 @@ export interface DisplayPreferences {
   pollingInterval?: number;
   /** Enable/disable auto-refresh */
   autoRefresh?: boolean;
-  /** Theme preference */
-  theme?: 'light' | 'dark' | 'system';
+  /** Visual theme preference */
+  theme?: VisualTheme;
   /** Collapsed sections in UI */
   collapsedSections?: string[];
 }
@@ -81,7 +86,7 @@ export const DEFAULT_CONFIG: DashboardConfig = {
     defaultView: 'kanban',
     pollingInterval: 5000,
     autoRefresh: true,
-    theme: 'system',
+    theme: 'corporate',
   },
 };
 

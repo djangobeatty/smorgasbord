@@ -1,6 +1,5 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import type { Issue, IssueStatus } from '@/types/beads';
 import { useEffect, useRef } from 'react';
 
@@ -9,7 +8,6 @@ interface ContextMenuProps {
   position: { x: number; y: number } | null;
   onClose: () => void;
   onStatusChange?: (issue: Issue, status: IssueStatus) => void;
-  onAssign?: (issue: Issue) => void;
   onViewDetails?: (issue: Issue) => void;
   onEscalate?: (issue: Issue) => void;
 }
@@ -27,7 +25,6 @@ export function ContextMenu({
   position,
   onClose,
   onStatusChange,
-  onAssign,
   onViewDetails,
   onEscalate,
 }: ContextMenuProps) {
@@ -71,16 +68,13 @@ export function ContextMenu({
     <div
       ref={menuRef}
       style={menuStyle}
-      className={cn(
-        'min-w-48 rounded-md border border-zinc-200 bg-white py-1 shadow-lg',
-        'dark:border-zinc-700 dark:bg-zinc-800'
-      )}
+      className="min-w-48 rounded-md border border-border bg-card py-1 shadow-lg"
     >
-      <div className="border-b border-zinc-100 px-3 py-2 dark:border-zinc-700">
-        <div className="text-xs text-zinc-500 dark:text-zinc-400">
+      <div className="border-b border-border px-3 py-2">
+        <div className="text-xs text-muted-foreground font-mono">
           {issue.id}
         </div>
-        <div className="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
+        <div className="truncate text-sm font-medium text-foreground">
           {issue.title}
         </div>
       </div>
@@ -90,17 +84,14 @@ export function ContextMenu({
           onViewDetails?.(issue);
           onClose();
         }}
-        className={cn(
-          'flex w-full items-center gap-2 px-3 py-2 text-left text-sm',
-          'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700'
-        )}
+        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
       >
         <span className="w-4 text-center">👁</span>
         View details
       </button>
 
-      <div className="border-t border-zinc-100 dark:border-zinc-700">
-        <div className="px-3 py-1.5 text-xs font-medium text-zinc-500 dark:text-zinc-400">
+      <div className="border-t border-border">
+        <div className="px-3 py-1.5 text-xs font-medium text-muted-foreground">
           Move to
         </div>
         {statusOptions
@@ -112,10 +103,7 @@ export function ContextMenu({
                 onStatusChange?.(issue, status.value);
                 onClose();
               }}
-              className={cn(
-                'flex w-full items-center gap-2 px-3 py-2 text-left text-sm',
-                'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700'
-              )}
+              className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-muted"
             >
               <span className="w-4 text-center">→</span>
               {status.label}
@@ -123,32 +111,13 @@ export function ContextMenu({
           ))}
       </div>
 
-      <div className="border-t border-zinc-100 dark:border-zinc-700">
-        <button
-          onClick={() => {
-            onAssign?.(issue);
-            onClose();
-          }}
-          className={cn(
-            'flex w-full items-center gap-2 px-3 py-2 text-left text-sm',
-            'text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-700'
-          )}
-        >
-          <span className="w-4 text-center">👤</span>
-          Assign...
-        </button>
-      </div>
-
-      <div className="border-t border-zinc-100 dark:border-zinc-700">
+      <div className="border-t border-border">
         <button
           onClick={() => {
             onEscalate?.(issue);
             onClose();
           }}
-          className={cn(
-            'flex w-full items-center gap-2 px-3 py-2 text-left text-sm',
-            'text-amber-700 hover:bg-amber-50 dark:text-amber-400 dark:hover:bg-amber-900/20 font-medium'
-          )}
+          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-amber-500 hover:bg-amber-500/10 font-medium"
         >
           <span className="w-4 text-center">🚨</span>
           Escalate to Mayor

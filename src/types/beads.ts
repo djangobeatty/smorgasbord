@@ -34,6 +34,7 @@ export interface Issue {
   labels?: string[];
   hook_bead?: string;
   role_bead?: string;
+  _rig?: string; // Added by beads-reader for multi-rig support
 }
 
 export type AgentState = 'spawning' | 'active' | 'idle' | 'done' | 'error';

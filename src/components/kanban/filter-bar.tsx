@@ -1,6 +1,8 @@
 'use client';
 
 import { cn } from '@/lib/utils';
+import { Select } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import type { Priority } from '@/types/beads';
 
 interface FilterBarProps {
@@ -39,87 +41,84 @@ export function FilterBar({
     selectedAssignee !== null ||
     selectedPriority !== null;
 
+  const rigOptions = [
+    { value: '', label: 'All rigs' },
+    ...rigs.map((rig) => ({ value: rig, label: rig })),
+  ];
+
+  const assigneeOptions = [
+    { value: '', label: 'All assignees' },
+    ...assignees.map((assignee) => ({
+      value: assignee,
+      label: assignee.split('/').pop() || assignee,
+    })),
+  ];
+
   return (
     <div className="flex flex-wrap items-center gap-3">
       {/* Rig Filter */}
       <div className="flex items-center gap-2">
-        <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+        <label className="text-xs font-medium text-muted-foreground">
           Rig
         </label>
-        <select
+        <Select
           value={selectedRig ?? ''}
-          onChange={(e) => onRigChange(e.target.value || null)}
-          className={cn(
-            'h-8 rounded-md border border-zinc-200 bg-white px-2 text-sm',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500',
-            'dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100'
-          )}
-        >
-          <option value="">All rigs</option>
-          {rigs.map((rig) => (
-            <option key={rig} value={rig}>
-              {rig}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => onRigChange(value || null)}
+          options={rigOptions}
+          placeholder="All rigs"
+          className="w-32"
+        />
       </div>
 
       {/* Assignee Filter */}
       <div className="flex items-center gap-2">
-        <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+        <label className="text-xs font-medium text-muted-foreground">
           Assignee
         </label>
-        <select
+        <Select
           value={selectedAssignee ?? ''}
-          onChange={(e) => onAssigneeChange(e.target.value || null)}
-          className={cn(
-            'h-8 rounded-md border border-zinc-200 bg-white px-2 text-sm',
-            'focus:outline-none focus:ring-2 focus:ring-blue-500',
-            'dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100'
-          )}
-        >
-          <option value="">All assignees</option>
-          {assignees.map((assignee) => (
-            <option key={assignee} value={assignee}>
-              {assignee.split('/').pop()}
-            </option>
-          ))}
-        </select>
+          onChange={(value) => onAssigneeChange(value || null)}
+          options={assigneeOptions}
+          placeholder="All assignees"
+          className="w-40"
+        />
       </div>
 
       {/* Priority Filter */}
       <div className="flex items-center gap-2">
-        <label className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+        <label className="text-xs font-medium text-muted-foreground">
           Priority
         </label>
         <div className="flex gap-1">
           {priorities.map(({ value, label, color }) => (
-            <button
+            <Button
               key={value}
+              variant={selectedPriority === value ? 'default' : 'outline'}
+              size="sm"
               onClick={() =>
                 onPriorityChange(selectedPriority === value ? null : value)
               }
               className={cn(
-                'flex h-8 w-8 items-center justify-center rounded-md border text-xs font-medium transition-all',
-                selectedPriority === value
-                  ? cn(color, 'border-transparent text-white')
-                  : 'border-zinc-200 bg-white text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700'
+                'h-8 w-8 p-0',
+                selectedPriority === value && cn(color, 'border-transparent hover:opacity-90')
               )}
             >
               {label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
       {/* Clear Filters */}
       {hasActiveFilters && (
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onClearFilters}
-          className="h-8 rounded-md px-2 text-xs font-medium text-zinc-500 hover:bg-zinc-100 hover:text-zinc-700 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+          className="h-8 text-xs"
         >
           Clear filters
-        </button>
+        </Button>
       )}
     </div>
   );

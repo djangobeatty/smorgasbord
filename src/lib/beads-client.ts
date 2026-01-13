@@ -202,6 +202,7 @@ export class BeadsClient {
         rig: agent.rig,
         status: agent.agent_state,
         hooked_work: agent.hook_bead,
+        unread_mail: 0, // Not available from beads, would need gt status
         branch: undefined,
         convoy: undefined,
       }));

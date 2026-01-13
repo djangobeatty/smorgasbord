@@ -19,6 +19,8 @@ export interface UseBeadsResult {
   isLoading: boolean;
   error: Error | null;
   refresh: () => Promise<void>;
+  setData: React.Dispatch<React.SetStateAction<BeadsData | null>>;
+  skipNextPoll: () => void;
 }
 
 const DEFAULT_POLLING_INTERVAL = 5000;
@@ -30,8 +32,15 @@ export function useBeads(options: UseBeadsOptions = {}): UseBeadsResult {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const skipNextPollRef = useRef(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isPolling = false) => {
+    // Skip polling fetch if an optimistic update is in progress
+    if (isPolling && skipNextPollRef.current) {
+      skipNextPollRef.current = false;
+      return;
+    }
+
     try {
       const url = rig ? `/api/beads?rig=${encodeURIComponent(rig)}` : '/api/beads';
       const response = await fetch(url);
@@ -70,7 +79,7 @@ export function useBeads(options: UseBeadsOptions = {}): UseBeadsResult {
 
     // Set up polling
     if (pollingInterval > 0) {
-      intervalRef.current = setInterval(fetchData, pollingInterval);
+      intervalRef.current = setInterval(() => fetchData(true), pollingInterval);
     }
 
     return () => {
@@ -80,19 +89,40 @@ export function useBeads(options: UseBeadsOptions = {}): UseBeadsResult {
     };
   }, [enabled, pollingInterval, fetchData]);
 
-  return { data, isLoading, error, refresh };
+  const skipNextPoll = useCallback(() => {
+    skipNextPollRef.current = true;
+  }, []);
+
+  return { data, isLoading, error, refresh, setData, skipNextPoll };
 }
 
 /**
  * Hook for fetching just issues
+ * Includes updateIssue for optimistic updates
  */
 export function useIssues(rig?: string) {
-  const { data, isLoading, error, refresh } = useBeads({ rig });
+  const { data, isLoading, error, refresh, setData, skipNextPoll } = useBeads({ rig });
+
+  const updateIssue = useCallback((issueId: string, updates: Partial<BeadsData['issues'][0]>) => {
+    // Skip the next poll to prevent race condition with optimistic update
+    skipNextPoll();
+    setData((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        issues: prev.issues.map((issue) =>
+          issue.id === issueId ? { ...issue, ...updates } : issue
+        ),
+      };
+    });
+  }, [setData, skipNextPoll]);
+
   return {
     issues: data?.issues ?? [],
     isLoading,
     error,
     refresh,
+    updateIssue,
   };
 }
 

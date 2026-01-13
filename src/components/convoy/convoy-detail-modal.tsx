@@ -4,6 +4,7 @@ import { cn, formatRelativeTime } from '@/lib/utils';
 import type { Convoy, Issue } from '@/types/beads';
 import { ConvoyStatusBadge } from './convoy-status-badge';
 import { ProgressBar } from './progress-bar';
+import { Button } from '@/components/ui/button';
 
 interface ConvoyDetailModalProps {
   convoy: Convoy | null;
@@ -38,7 +39,7 @@ function IssueItem({ issue, onClick }: IssueItemProps) {
 
   return (
     <div
-      className="flex items-center justify-between p-2 rounded border border-zinc-200 dark:border-zinc-800 bg-zinc-100 dark:bg-zinc-900/30 hover:bg-zinc-200 dark:hover:bg-zinc-900/50 transition-colors cursor-pointer"
+      className="flex items-center justify-between p-2 rounded border border-border bg-muted/50 hover:bg-muted transition-colors cursor-pointer"
       onClick={() => onClick?.(issue)}
     >
       <div className="flex items-center gap-3 min-w-0">
@@ -46,14 +47,14 @@ function IssueItem({ issue, onClick }: IssueItemProps) {
           className={cn(
             'text-xs font-bold',
             priorityColors[issue.priority as keyof typeof priorityColors] ||
-              'text-zinc-400'
+              'text-muted-foreground'
           )}
         >
           P{issue.priority}
         </span>
         <div className="min-w-0">
-          <p className="text-sm text-zinc-900 dark:text-zinc-100 truncate">{issue.title}</p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">{issue.id}</p>
+          <p className="text-sm text-foreground truncate">{issue.title}</p>
+          <p className="text-xs text-muted-foreground font-mono">{issue.id}</p>
         </div>
       </div>
       <span
@@ -98,26 +99,27 @@ export function ConvoyDetailModal({
       onClick={onClose}
     >
       <div
-        className="bg-white dark:bg-zinc-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-xl border border-zinc-200 dark:border-zinc-700"
+        className="bg-card rounded-lg max-w-2xl w-full max-h-[90vh] overflow-hidden shadow-xl border border-border"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-start justify-between p-6 border-b border-zinc-200 dark:border-zinc-800">
+        <div className="flex items-start justify-between p-6 border-b border-border">
           <div className="flex-1 min-w-0 pr-4">
             <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 truncate">
+              <h2 className="text-xl font-semibold text-foreground truncate">
                 {convoy.title}
               </h2>
               <ConvoyStatusBadge status={convoy.status} />
             </div>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 font-mono">{convoy.id}</p>
+            <p className="text-sm text-muted-foreground font-mono">{convoy.id}</p>
           </div>
-          <button
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onClose}
-            className="p-1 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
           >
             <svg
-              className="w-6 h-6"
+              className="w-5 h-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -129,14 +131,14 @@ export function ConvoyDetailModal({
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-          </button>
+          </Button>
         </div>
 
         {/* Content */}
         <div className="overflow-y-auto max-h-[calc(90vh-200px)]">
           {/* Progress Section */}
-          <div className="p-6 border-b border-zinc-200 dark:border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-2">Progress</h3>
+          <div className="p-6 border-b border-border">
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Progress</h3>
             <ProgressBar
               completed={convoy.progress.completed}
               total={convoy.progress.total}
@@ -145,28 +147,28 @@ export function ConvoyDetailModal({
           </div>
 
           {/* Details Section */}
-          <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 grid grid-cols-2 gap-4 text-sm">
+          <div className="p-6 border-b border-border grid grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-zinc-500 dark:text-zinc-400">Assigned To</span>
-              <p className="text-blue-600 dark:text-blue-400 mt-1">{convoy.assignee || 'Unassigned'}</p>
+              <span className="text-muted-foreground">Assigned To</span>
+              <p className="text-blue-400 mt-1">{convoy.assignee || 'Unassigned'}</p>
             </div>
             <div>
-              <span className="text-zinc-500 dark:text-zinc-400">Total Issues</span>
-              <p className="text-zinc-900 dark:text-zinc-100 mt-1">{convoy.issues.length}</p>
+              <span className="text-muted-foreground">Total Issues</span>
+              <p className="text-foreground mt-1">{convoy.issues.length}</p>
             </div>
             <div>
-              <span className="text-zinc-500 dark:text-zinc-400">Created</span>
-              <p className="text-zinc-700 dark:text-zinc-300 mt-1">{formatRelativeTime(convoy.created_at)}</p>
+              <span className="text-muted-foreground">Created</span>
+              <p className="text-foreground mt-1">{formatRelativeTime(convoy.created_at)}</p>
             </div>
             <div>
-              <span className="text-zinc-500 dark:text-zinc-400">Last Updated</span>
-              <p className="text-zinc-700 dark:text-zinc-300 mt-1">{formatRelativeTime(convoy.updated_at)}</p>
+              <span className="text-muted-foreground">Last Updated</span>
+              <p className="text-foreground mt-1">{formatRelativeTime(convoy.updated_at)}</p>
             </div>
           </div>
 
           {/* Issues Timeline */}
           <div className="p-6">
-            <h3 className="text-sm font-medium text-zinc-500 dark:text-zinc-400 mb-3">Issues</h3>
+            <h3 className="text-sm font-medium text-muted-foreground mb-3">Issues</h3>
 
             {inProgressIssues.length > 0 && (
               <div className="mb-4">
@@ -208,7 +210,7 @@ export function ConvoyDetailModal({
             )}
 
             {convoyIssues.length === 0 && (
-              <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center py-4">
+              <p className="text-sm text-muted-foreground text-center py-4">
                 No issues found for this convoy
               </p>
             )}
@@ -216,27 +218,27 @@ export function ConvoyDetailModal({
         </div>
 
         {/* Actions Footer */}
-        <div className="p-6 border-t border-zinc-200 dark:border-zinc-800 flex gap-2">
+        <div className="p-6 border-t border-border flex justify-end gap-2">
           {convoy.status !== 'completed' && (
-            <button
+            <Button
+              variant="outline"
               onClick={() => {
                 onNudge?.(convoy);
                 onClose();
               }}
-              className="flex-1 px-4 py-2 text-sm rounded bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-400 transition-colors"
             >
               Nudge Workers
-            </button>
+            </Button>
           )}
-          <button
+          <Button
             onClick={() => {
               onEscalate?.(convoy);
               onClose();
             }}
-            className="flex-1 px-4 py-2 text-sm rounded bg-amber-50 dark:bg-amber-900/20 hover:bg-amber-100 dark:hover:bg-amber-900/30 text-amber-700 dark:text-amber-400 transition-colors font-medium"
+            className="bg-amber-500 hover:bg-amber-600"
           >
-            🚨 Escalate to Mayor
-          </button>
+            Escalate to Mayor
+          </Button>
         </div>
       </div>
     </div>

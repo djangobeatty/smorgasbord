@@ -87,6 +87,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: '/work', label: 'Work', feature: 'kanban' },
   { href: '/workers', label: 'Workers', feature: 'polecats' }, // Combined polecats + crew
   { href: '/system', label: 'Engine Room', feature: 'witnesses' }, // Deacon + witnesses + refineries + dogs + boot
-  { href: '/mailbox', label: 'Mailbox', feature: 'controlPlane' },
+  { href: '/mailbox', label: 'Comms', feature: 'controlPlane' },
   { href: '/settings', label: 'Settings' },
 ];

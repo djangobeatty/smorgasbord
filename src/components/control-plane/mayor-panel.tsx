@@ -13,17 +13,17 @@ function StatusIndicator({ status }: StatusIndicatorProps) {
   const config: Record<MayorStatus, { label: string; className: string; dotClass: string }> = {
     online: {
       label: 'Online',
-      className: 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400 border-green-300 dark:border-green-500/30',
+      className: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/30',
       dotClass: 'bg-green-500 dark:bg-green-400 animate-pulse',
     },
     offline: {
       label: 'Offline',
-      className: 'bg-zinc-100 dark:bg-gray-500/20 text-zinc-600 dark:text-gray-400 border-zinc-300 dark:border-gray-500/30',
-      dotClass: 'bg-zinc-400 dark:bg-gray-400',
+      className: 'bg-muted text-muted-foreground border-border',
+      dotClass: 'bg-muted-foreground/50',
     },
     busy: {
       label: 'Busy',
-      className: 'bg-yellow-100 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 border-yellow-300 dark:border-yellow-500/30',
+      className: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/30',
       dotClass: 'bg-yellow-500 dark:bg-yellow-400 animate-pulse',
     },
   };
@@ -57,7 +57,7 @@ function ContextUsageBar({ percent }: ContextUsageBarProps) {
   return (
     <div className="space-y-1">
       <div className="flex justify-between text-xs">
-        <span className="text-zinc-500 dark:text-gray-400">Context Usage</span>
+        <span className="text-muted-foreground">Context Usage</span>
         <span className={cn(
           'font-mono',
           percent >= 90 ? 'text-red-600 dark:text-red-400' : percent >= 70 ? 'text-yellow-600 dark:text-yellow-400' : 'text-green-600 dark:text-green-400'
@@ -65,7 +65,7 @@ function ContextUsageBar({ percent }: ContextUsageBarProps) {
           {percent}%
         </span>
       </div>
-      <div className="h-2 bg-zinc-200 dark:bg-gray-800 rounded-full overflow-hidden">
+      <div className="h-2 bg-muted rounded-full overflow-hidden">
         <div
           className={cn('h-full rounded-full transition-all duration-500', getBarColor(percent))}
           style={{ width: `${Math.min(100, Math.max(0, percent))}%` }}
@@ -142,10 +142,10 @@ export function MayorPanel() {
 
   if (isLoading && !mayorState) {
     return (
-      <div className="rounded-lg border border-zinc-200 dark:border-gray-700 bg-white dark:bg-gray-900/50 p-6 shadow-sm dark:shadow-none">
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-400 dark:border-gray-400 border-t-transparent" />
-          <span className="text-zinc-500 dark:text-gray-400">Loading Mayor status...</span>
+          <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+          <span className="text-muted-foreground">Loading Mayor status...</span>
         </div>
       </div>
     );
@@ -153,12 +153,12 @@ export function MayorPanel() {
 
   if (error) {
     return (
-      <div className="rounded-lg border border-red-300 dark:border-red-500/30 bg-white dark:bg-gray-900/50 p-6 shadow-sm dark:shadow-none">
+      <div className="rounded-lg border border-destructive/30 bg-card p-6 shadow-sm">
         <div className="flex items-center justify-between">
-          <span className="text-red-600 dark:text-red-400">Failed to load Mayor status</span>
+          <span className="text-destructive">Failed to load Mayor status</span>
           <button
             onClick={refresh}
-            className="px-3 py-1 text-xs rounded bg-zinc-100 dark:bg-gray-800 hover:bg-zinc-200 dark:hover:bg-gray-700 text-zinc-700 dark:text-gray-300 transition-colors"
+            className="px-3 py-1 text-xs rounded bg-muted hover:bg-muted/80 text-muted-foreground transition-colors"
           >
             Retry
           </button>
@@ -173,24 +173,24 @@ export function MayorPanel() {
   return (
     <div
       className={cn(
-        'rounded-lg border bg-white dark:bg-gray-900/50 p-6 transition-all shadow-sm dark:shadow-none',
+        'rounded-lg border bg-card p-6 transition-all shadow-sm',
         {
-          'border-green-300 dark:border-green-500/30': status === 'online',
-          'border-zinc-200 dark:border-gray-700': status === 'offline',
-          'border-yellow-300 dark:border-yellow-500/30': status === 'busy',
+          'border-green-500/30': status === 'online',
+          'border-border': status === 'offline',
+          'border-yellow-500/30': status === 'busy',
         }
       )}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-white">Mayor</h2>
+          <h2 className="text-lg font-semibold text-foreground">Mayor</h2>
           <StatusIndicator status={status} />
         </div>
         <button
           onClick={refresh}
           disabled={isLoading}
-          className="p-2 text-zinc-500 dark:text-gray-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-100 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
+          className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded transition-colors disabled:opacity-50"
           title="Refresh status"
         >
           <svg
@@ -220,17 +220,17 @@ export function MayorPanel() {
       <div className="space-y-3 mb-6">
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="text-zinc-500 dark:text-gray-500">Uptime</span>
-            <p className="text-zinc-900 dark:text-white font-mono">{session?.uptime ?? 'N/A'}</p>
+            <span className="text-muted-foreground">Uptime</span>
+            <p className="text-foreground font-mono">{session?.uptime ?? 'N/A'}</p>
           </div>
           <div>
-            <span className="text-zinc-500 dark:text-gray-500">Last Activity</span>
-            <p className="text-zinc-900 dark:text-white font-mono">{session?.lastActivity ?? 'N/A'}</p>
+            <span className="text-muted-foreground">Last Activity</span>
+            <p className="text-foreground font-mono">{session?.lastActivity ?? 'N/A'}</p>
           </div>
         </div>
         {session?.currentTask && (
           <div className="text-sm">
-            <span className="text-zinc-500 dark:text-gray-500">Current Task</span>
+            <span className="text-muted-foreground">Current Task</span>
             <p className="text-orange-600 dark:text-orange-400 font-mono text-xs mt-1 truncate">
               {session.currentTask}
             </p>
@@ -240,18 +240,18 @@ export function MayorPanel() {
 
       {/* Offline Alert + Restart Button */}
       {status === 'offline' && (
-        <div className="mb-4 p-3 rounded bg-red-500/10 border border-red-500/20">
+        <div className="mb-4 p-3 rounded bg-destructive/10 border border-destructive/20">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
-              <span className="text-sm text-red-600 dark:text-red-400 font-medium">Mayor is offline</span>
+              <span className="text-sm text-destructive font-medium">Mayor is offline</span>
             </div>
             <button
               onClick={handleRestartMayor}
               disabled={isRestarting}
-              className="px-3 py-1 text-sm rounded bg-red-600 hover:bg-red-500 text-white transition-colors disabled:opacity-50"
+              className="px-3 py-1 text-sm rounded bg-destructive hover:bg-destructive/90 text-destructive-foreground transition-colors disabled:opacity-50"
             >
               {isRestarting ? 'Restarting...' : 'Restart Mayor'}
             </button>
@@ -260,9 +260,9 @@ export function MayorPanel() {
       )}
 
       {/* Nudge Input */}
-      <div className="border-t border-zinc-200 dark:border-gray-800 pt-4">
-        <label className="block text-xs text-zinc-500 dark:text-gray-500 mb-2">
-          Send Nudge {status === 'offline' && <span className="text-red-600 dark:text-red-400">(Mayor offline)</span>}
+      <div className="border-t border-border pt-4">
+        <label className="block text-xs text-muted-foreground mb-2">
+          Send Nudge {status === 'offline' && <span className="text-destructive">(Mayor offline)</span>}
         </label>
         <div className="flex gap-2">
           <input
@@ -271,7 +271,7 @@ export function MayorPanel() {
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={status === 'offline' ? 'Mayor is offline' : 'Type a message for Mayor...'}
-            className="flex-1 px-3 py-2 bg-white dark:bg-gray-800 border border-zinc-300 dark:border-gray-700 rounded text-sm text-zinc-900 dark:text-white placeholder-zinc-500 dark:placeholder-gray-500 focus:outline-none focus:border-blue-500 transition-colors"
+            className="flex-1 px-3 py-2 bg-background border border-border rounded text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary transition-colors"
             disabled={isSending || status === 'offline'}
           />
           <button
@@ -280,13 +280,13 @@ export function MayorPanel() {
             className={cn(
               'px-4 py-2 text-sm font-medium rounded transition-colors',
               message.trim() && !isSending && status !== 'offline'
-                ? 'bg-blue-600 hover:bg-blue-500 text-white'
-                : 'bg-zinc-100 dark:bg-gray-800 text-zinc-400 dark:text-gray-500 cursor-not-allowed'
+                ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                : 'bg-muted text-muted-foreground cursor-not-allowed'
             )}
           >
             {isSending ? (
               <span className="flex items-center gap-2">
-                <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                <span className="h-3 w-3 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
                 Sending
               </span>
             ) : (
@@ -298,7 +298,7 @@ export function MayorPanel() {
           <p
             className={cn(
               'mt-2 text-xs',
-              nudgeStatus.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+              nudgeStatus.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-destructive'
             )}
           >
             {nudgeStatus.message}

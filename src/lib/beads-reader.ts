@@ -68,8 +68,10 @@ export async function queryBeadsDaemon(beadsPath: string): Promise<string> {
   const resolvedPath = await resolveBeadsPath(beadsPath);
 
   try {
-    // Run bd list --json from the beads directory to get live data
-    const { stdout } = await execGt('bd list --json', {
+    // Run bd list --all --json --limit 0 from the beads directory to get live data
+    // --all: include closed beads (default excludes them)
+    // --limit 0: get all beads (default is 50)
+    const { stdout } = await execGt('bd list --all --json --limit 0', {
       cwd: resolvedPath,
       timeout: 10000, // 10 second timeout
     });

@@ -1,22 +1,27 @@
 /**
  * API Route: GET /api/gt-status
- * Returns full gt status output including all agents
+ * Returns full gt status output including all agents and rigs
  */
 
 import { NextResponse } from 'next/server';
 import { execGt } from '@/lib/exec-gt';
-import type { GtStatusOutput, GtAgent } from '@/types/gt-status';
+import type { GtStatusOutput, GtAgent, GtRig } from '@/types/gt-status';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const { stdout } = await execGt('gt status --json 2>/dev/null || echo "[]"', {
-      timeout: 5000,
+    const { stdout, stderr } = await execGt('gt status --json', {
+      timeout: 10000,
     });
 
-    // gt status --json returns an array of agents
+    if (stderr) {
+      console.warn('gt status stderr:', stderr);
+    }
+
+    // gt status --json returns full status with agents and rigs
     let agents: GtAgent[] = [];
+    let rigs: GtRig[] = [];
     let name = 'Gas Town';
 
     try {
@@ -28,6 +33,10 @@ export async function GET() {
       } else if (parsed.agents) {
         agents = parsed.agents;
         name = parsed.name || name;
+        // Include rigs data for crew members
+        if (parsed.rigs) {
+          rigs = parsed.rigs;
+        }
       }
     } catch (parseError) {
       console.error('Failed to parse gt status output:', parseError);
@@ -37,13 +46,14 @@ export async function GET() {
     const response: GtStatusOutput = {
       name,
       agents,
+      rigs,
     };
 
     return NextResponse.json(response);
   } catch (error) {
     console.error('Error running gt status:', error);
     return NextResponse.json(
-      { error: 'Failed to get gt status', name: 'Gas Town', agents: [] },
+      { error: 'Failed to get gt status', name: 'Gas Town', agents: [], rigs: [] },
       { status: 500 }
     );
   }

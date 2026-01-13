@@ -111,19 +111,19 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
   return (
     <div
       className={cn(
-        'flex flex-col h-full bg-zinc-950 rounded-lg border border-zinc-800',
+        'flex flex-col h-full bg-card rounded-lg border border-border',
         className
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-border">
         <div>
-          <h2 className="text-lg font-semibold text-zinc-100">Control Plane</h2>
-          <p className="text-xs text-zinc-500">Chat with Mayor</p>
+          <h2 className="text-lg font-semibold text-foreground">Engine Room</h2>
+          <p className="text-xs text-muted-foreground">Chat with Mayor</p>
         </div>
         <button
           onClick={handleClearHistory}
-          className="px-3 py-1.5 text-xs rounded bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 transition-colors"
+          className="px-3 py-1.5 text-xs rounded bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground transition-colors"
         >
           Clear History
         </button>
@@ -133,7 +133,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 ? (
           <div className="flex items-center justify-center h-full">
-            <p className="text-zinc-600 text-sm">
+            <p className="text-muted-foreground text-sm">
               No messages yet. Send a message to Mayor.
             </p>
           </div>
@@ -148,17 +148,17 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
             >
               <div
                 className={cn('max-w-[80%] rounded-lg px-4 py-2', {
-                  'bg-blue-600/20 border border-blue-500/30 text-blue-100':
+                  'bg-primary/10 border border-primary/30 text-foreground':
                     message.role === 'sent',
-                  'bg-zinc-800/50 border border-zinc-700 text-zinc-200':
+                  'bg-muted border border-border text-foreground':
                     message.role === 'received',
                 })}
               >
                 <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                 <p
                   className={cn('text-xs mt-1', {
-                    'text-blue-400/60': message.role === 'sent',
-                    'text-zinc-500': message.role === 'received',
+                    'text-primary/60': message.role === 'sent',
+                    'text-muted-foreground': message.role === 'received',
                   })}
                 >
                   {formatRelativeTime(message.timestamp)}
@@ -171,7 +171,7 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
       </div>
 
       {/* Input Area */}
-      <div className="border-t border-zinc-800 p-4">
+      <div className="border-t border-border p-4">
         <div className="flex gap-2">
           <textarea
             ref={textareaRef}
@@ -181,9 +181,9 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
             placeholder="Send a message to Mayor..."
             rows={2}
             className={cn(
-              'flex-1 rounded border border-zinc-700 bg-zinc-900 text-zinc-100',
-              'px-3 py-2 text-sm placeholder:text-zinc-600 resize-none',
-              'focus:outline-none focus:ring-1 focus:ring-zinc-600 focus:border-zinc-600'
+              'flex-1 rounded border border-border bg-background text-foreground',
+              'px-3 py-2 text-sm placeholder:text-muted-foreground resize-none',
+              'focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary'
             )}
           />
           <button
@@ -191,14 +191,14 @@ export function ChatInterface({ className }: ChatInterfaceProps) {
             disabled={!input.trim() || isLoading}
             className={cn(
               'px-4 py-2 rounded text-sm font-medium transition-colors',
-              'bg-blue-600 text-white hover:bg-blue-700',
+              'bg-primary text-primary-foreground hover:bg-primary/90',
               'disabled:opacity-50 disabled:cursor-not-allowed'
             )}
           >
             {isLoading ? 'Sending...' : 'Send'}
           </button>
         </div>
-        <p className="text-xs text-zinc-600 mt-2">
+        <p className="text-xs text-muted-foreground mt-2">
           Press Enter to send, Shift+Enter for new line
         </p>
       </div>

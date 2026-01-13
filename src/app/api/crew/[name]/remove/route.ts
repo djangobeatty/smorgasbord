@@ -11,6 +11,7 @@ export const dynamic = 'force-dynamic';
 
 interface RemoveRequest {
   force?: boolean;
+  rig?: string;
 }
 
 export async function POST(
@@ -40,8 +41,10 @@ export async function POST(
 
     try {
       const forceFlag = body.force ? ' --force' : '';
+      // Use rig/name format if rig is provided
+      const targetName = body.rig ? `${body.rig}/${sanitizedName}` : sanitizedName;
       const { stdout, stderr } = await execGt(
-        `gt crew remove ${sanitizedName}${forceFlag}`,
+        `gt crew remove ${targetName}${forceFlag}`,
         {
           timeout: 20000,
           cwd: process.env.GT_BASE_PATH || process.cwd(),

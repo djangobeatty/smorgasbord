@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Gas Town Dashboard",
-  description: "Browser-based kanban board for visualizing Gas Town work status",
+  title: "Smorgasbord",
+  description: "Browser-based dashboard for Gas Town",
 };
 
 export default function RootLayout({

@@ -4,6 +4,7 @@
  */
 
 import { NextResponse } from 'next/server';
+import path from 'path';
 import type { IssueStatus } from '@/types/beads';
 import { execGt } from '@/lib/exec-gt';
 
@@ -18,7 +19,7 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { status, reason } = body;
+    const { status, reason, rig } = body;
 
     if (!status) {
       return NextResponse.json(
@@ -35,6 +36,11 @@ export async function PATCH(
     }
 
     const basePath = process.env.GT_BASE_PATH ?? process.cwd();
+
+    // If rig is provided, run bd from that rig's .beads directory
+    // This is needed for multi-rig setups where beads exist in different rig databases
+    const workingDir = rig ? path.join(basePath, rig, '.beads') : basePath;
+
     let command: string;
 
     // Map status to bd CLI commands
@@ -43,10 +49,11 @@ export async function PATCH(
     } else if (status === 'open') {
       command = `bd reopen ${id}`;
     } else {
-      command = `bd set-state ${id} status=${status}`;
+      // Use bd update --status for hooked, in_progress, blocked
+      command = `bd update ${id} --status ${status}`;
     }
 
-    const { stdout, stderr } = await execGt(command, { cwd: basePath });
+    const { stdout, stderr } = await execGt(command, { cwd: workingDir });
 
     return NextResponse.json({
       success: true,
@@ -58,8 +65,13 @@ export async function PATCH(
   } catch (error) {
     console.error('Error updating bead status:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    // Extract stderr from exec error if available
+    const stderr = (error as { stderr?: string })?.stderr;
     return NextResponse.json(
-      { error: 'Failed to update bead status', details: errorMessage },
+      {
+        error: 'Failed to update bead status',
+        details: stderr || errorMessage,
+      },
       { status: 500 }
     );
   }

@@ -13,7 +13,9 @@ export interface UseConfigResult {
   addProject: (project: Omit<ProjectConfig, 'id'>) => Promise<void>;
   updateProject: (project: ProjectConfig) => Promise<void>;
   deleteProject: (projectId: string) => Promise<void>;
+  /** @deprecated Use toggleRigActive instead */
   setActiveProject: (projectId: string) => Promise<void>;
+  toggleRigActive: (projectId: string) => Promise<void>;
   setGtBasePath: (path: string) => Promise<void>;
 }
 
@@ -65,16 +67,12 @@ export function useConfig(): UseConfigResult {
     const newProject: ProjectConfig = {
       ...project,
       id: generateId(),
+      active: true, // New rigs are active by default
     };
     const newConfig: DashboardConfig = {
       ...config,
       projects: [...config.projects, newProject],
-      // mode is deprecated - rigs auto-detected from gt status
     };
-    // If first project, make it active
-    if (newConfig.projects.length === 1) {
-      newConfig.activeProject = newProject.id;
-    }
     await saveConfigToServer(newConfig);
   }, [config, saveConfigToServer]);
 
@@ -110,6 +108,16 @@ export function useConfig(): UseConfigResult {
     await saveConfigToServer(newConfig);
   }, [config, saveConfigToServer]);
 
+  const toggleRigActive = useCallback(async (projectId: string) => {
+    const newConfig: DashboardConfig = {
+      ...config,
+      projects: config.projects.map((p) =>
+        p.id === projectId ? { ...p, active: !p.active } : p
+      ),
+    };
+    await saveConfigToServer(newConfig);
+  }, [config, saveConfigToServer]);
+
   const setGtBasePath = useCallback(async (path: string) => {
     const newConfig: DashboardConfig = {
       ...config,
@@ -132,6 +140,7 @@ export function useConfig(): UseConfigResult {
     updateProject,
     deleteProject,
     setActiveProject,
+    toggleRigActive,
     setGtBasePath,
   };
 }

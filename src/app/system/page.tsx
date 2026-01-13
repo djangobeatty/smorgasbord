@@ -89,8 +89,9 @@ export default function SystemPage() {
   const deaconAgent = gtStatus?.agents?.find(
     a => a.name.toLowerCase() === 'deacon' || a.role === 'health-check' || a.role === 'deacon'
   );
-  const deaconAlive = deaconAgent?.running ?? false;
-  const mayorRunning = mayorAgent?.running ?? false;
+  // Use undefined for unknown status (agent not found in data), vs false for explicitly stopped
+  const deaconAlive = deaconAgent?.running;
+  const mayorRunning = mayorAgent?.running;
 
   const activeWitnesses = witnesses.filter(w => w.status === 'active').length;
   const stoppedWitnesses = witnesses.filter(w => w.status === 'stopped').length;
@@ -422,13 +423,13 @@ export default function SystemPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+    <div className="min-h-screen bg-background">
       <NavBar />
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Engine Room</h1>
+          <h1 className="text-3xl font-bold text-foreground">Engine Room</h1>
           <button
             onClick={() => {
               refresh();
@@ -436,7 +437,7 @@ export default function SystemPage() {
               loadBootStatus();
             }}
             disabled={isLoading}
-            className="flex items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            className="flex items-center gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
           >
             <svg className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -454,28 +455,28 @@ export default function SystemPage() {
 
         {/* Summary Stats - Individual Mailboxes */}
         <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Mayor Unread</div>
-            <div className={`text-2xl font-bold ${mayorMail > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-zinc-600 dark:text-zinc-400'}`}>{mayorMail}</div>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="text-xs font-medium text-muted-foreground mb-1">Mayor Unread</div>
+            <div className={`text-2xl font-bold ${mayorMail > 0 ? 'text-purple-600 dark:text-purple-400' : 'text-muted-foreground'}`}>{mayorMail}</div>
           </div>
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Deacon Unread</div>
-            <div className={`text-2xl font-bold ${deaconMail > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-zinc-600 dark:text-zinc-400'}`}>{deaconMail}</div>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="text-xs font-medium text-muted-foreground mb-1">Deacon Unread</div>
+            <div className={`text-2xl font-bold ${deaconMail > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>{deaconMail}</div>
           </div>
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Witnesses Unread</div>
-            <div className={`text-2xl font-bold ${witnessesMail > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-zinc-600 dark:text-zinc-400'}`}>{witnessesMail}</div>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="text-xs font-medium text-muted-foreground mb-1">Witnesses Unread</div>
+            <div className={`text-2xl font-bold ${witnessesMail > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground'}`}>{witnessesMail}</div>
           </div>
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Refineries Unread</div>
-            <div className={`text-2xl font-bold ${refineriesMail > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-zinc-600 dark:text-zinc-400'}`}>{refineriesMail}</div>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="text-xs font-medium text-muted-foreground mb-1">Refineries Unread</div>
+            <div className={`text-2xl font-bold ${refineriesMail > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'}`}>{refineriesMail}</div>
           </div>
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Active Witnesses</div>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="text-xs font-medium text-muted-foreground mb-1">Active Witnesses</div>
             <div className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{activeWitnesses}</div>
           </div>
-          <div className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
-            <div className="text-xs font-medium text-zinc-600 dark:text-zinc-400 mb-1">Refineries</div>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <div className="text-xs font-medium text-muted-foreground mb-1">Refineries</div>
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{refineries.length}</div>
           </div>
         </div>
@@ -483,28 +484,28 @@ export default function SystemPage() {
         {isLoading ? (
           <div className="flex h-96 items-center justify-center">
             <div className="text-center">
-              <svg className="mx-auto h-8 w-8 animate-spin text-zinc-400" fill="none" viewBox="0 0 24 24">
+              <svg className="mx-auto h-8 w-8 animate-spin text-muted-foreground" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
-              <p className="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Loading system status...</p>
+              <p className="mt-2 text-sm text-muted-foreground">Loading system status...</p>
             </div>
           </div>
         ) : (
           <div className="space-y-6">
             {/* Mayor Section */}
             <div>
-              <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-100">Mayor</h2>
-              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="mb-4 text-xl font-semibold text-foreground">Mayor</h2>
+              <div className="rounded-lg border border-border bg-card p-6">
                 <div className="mb-4">
-                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-3">
+                  <div className="text-xs text-muted-foreground mb-3">
                     Chief-of-staff agent responsible for initiating Convoys and coordinating work distribution
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
-                      <div className={`h-3 w-3 rounded-full ${mayorRunning ? 'bg-purple-500' : 'bg-zinc-400'}`} />
-                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        Status: {mayorRunning ? 'Running' : 'Stopped'}
+                      <div className={`h-3 w-3 rounded-full ${mayorRunning === true ? 'bg-purple-500' : mayorRunning === false ? 'bg-red-500' : 'bg-amber-500'}`} />
+                      <span className="text-sm font-medium text-foreground">
+                        Status: {mayorRunning === true ? 'Running' : mayorRunning === false ? 'Stopped' : 'Unknown'}
                       </span>
                     </div>
                     {mayorMail > 0 && (
@@ -518,7 +519,7 @@ export default function SystemPage() {
                 </div>
 
                 {/* Mayor Controls */}
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => handleMayorRestart()}
                     disabled={isPerformingAction['mayor-restart']}
@@ -544,17 +545,17 @@ export default function SystemPage() {
 
             {/* Deacon Section */}
             <div>
-              <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-100">Deacon</h2>
-              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="mb-4 text-xl font-semibold text-foreground">Deacon</h2>
+              <div className="rounded-lg border border-border bg-card p-6">
                 <div className="mb-4">
-                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-3">
+                  <div className="text-xs text-muted-foreground mb-3">
                     Daemon beacon running continuous Patrol cycles that monitor health and trigger recovery
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
-                      <div className={`h-3 w-3 rounded-full ${deaconAlive ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        Status: {deaconAlive ? 'Running' : 'Stopped'}
+                      <div className={`h-3 w-3 rounded-full ${deaconAlive === true ? 'bg-emerald-500' : deaconAlive === false ? 'bg-red-500' : 'bg-amber-500'}`} />
+                      <span className="text-sm font-medium text-foreground">
+                        Status: {deaconAlive === true ? 'Running' : deaconAlive === false ? 'Stopped' : 'Unknown'}
                       </span>
                     </div>
                     {deaconMail > 0 && (
@@ -568,39 +569,39 @@ export default function SystemPage() {
                 </div>
 
                 {/* Deacon Controls */}
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => handleDeaconAction('start')}
-                    disabled={isPerformingAction['deacon-start'] || deaconAlive}
-                    className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    disabled={isPerformingAction['deacon-start'] || deaconAlive === true}
+                    className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                   >
                     Start
                   </button>
                   <button
                     onClick={() => handleDeaconAction('stop')}
-                    disabled={isPerformingAction['deacon-stop'] || !deaconAlive}
-                    className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    disabled={isPerformingAction['deacon-stop'] || deaconAlive !== true}
+                    className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                   >
                     Stop
                   </button>
                   <button
                     onClick={() => handleDeaconAction('restart')}
                     disabled={isPerformingAction['deacon-restart']}
-                    className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                   >
                     Restart
                   </button>
                   <button
                     onClick={() => handleDeaconAction('pause')}
-                    disabled={isPerformingAction['deacon-pause'] || !deaconAlive}
-                    className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    disabled={isPerformingAction['deacon-pause'] || deaconAlive !== true}
+                    className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                   >
                     Pause
                   </button>
                   <button
                     onClick={() => handleDeaconAction('resume')}
-                    disabled={isPerformingAction['deacon-resume'] || !deaconAlive}
-                    className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    disabled={isPerformingAction['deacon-resume'] || deaconAlive !== true}
+                    className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                   >
                     Resume
                   </button>
@@ -635,7 +636,7 @@ export default function SystemPage() {
                   <button
                     onClick={handleDeaconHealthState}
                     disabled={isPerformingAction['deacon-health-state']}
-                    className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                   >
                     Health State
                   </button>
@@ -645,46 +646,46 @@ export default function SystemPage() {
 
             {/* Witnesses Section */}
             <div>
-              <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-100">Witnesses ({witnesses.length})</h2>
-              <div className="mb-3 text-xs text-zinc-600 dark:text-zinc-400">
+              <h2 className="mb-4 text-xl font-semibold text-foreground">Witnesses ({witnesses.length})</h2>
+              <div className="mb-3 text-xs text-muted-foreground">
                 Patrol agents that oversee Polecats and the Refinery, monitoring progress
               </div>
               {(!witnessesInitiallyLoaded || witnessesLoading) ? (
                 <div className="space-y-3">
                   {[1, 2].map((i) => (
-                    <div key={i} className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 animate-pulse">
+                    <div key={i} className="rounded-lg border border-border bg-card p-4 animate-pulse">
                       <div className="flex items-start gap-3 mb-3">
-                        <div className="h-3 w-3 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                        <div className="h-3 w-3 rounded-full bg-muted" />
                         <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-zinc-300 dark:bg-zinc-700 rounded w-32" />
-                          <div className="h-3 bg-zinc-200 dark:bg-zinc-800 rounded w-48" />
+                          <div className="h-4 bg-muted rounded w-32" />
+                          <div className="h-3 bg-muted rounded w-48" />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
                         {[1, 2, 3, 4, 5].map((j) => (
-                          <div key={j} className="h-8 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                          <div key={j} className="h-8 bg-muted rounded" />
                         ))}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : witnesses.length === 0 ? (
-                <div className="rounded-lg border border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-                  <p className="text-zinc-600 dark:text-zinc-400">No witnesses configured</p>
+                <div className="rounded-lg border border-border bg-card p-8 text-center">
+                  <p className="text-muted-foreground">No witnesses configured</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {witnesses.map((witness) => (
-                    <div key={witness.rig} className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                    <div key={witness.rig} className="rounded-lg border border-border bg-card p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-start gap-3 flex-1">
                           <div className="mt-1">
-                            <div className={`h-3 w-3 rounded-full ${witness.status === 'active' ? 'bg-emerald-500' : witness.status === 'idle' ? 'bg-blue-500' : 'bg-zinc-400'}`} />
+                            <div className={`h-3 w-3 rounded-full ${witness.status === 'active' ? 'bg-emerald-500' : witness.status === 'idle' ? 'bg-blue-500' : 'bg-muted-foreground/50'}`} />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">{witness.rig}</span>
-                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${witness.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : witness.status === 'idle' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'}`}>
+                              <span className="font-mono font-semibold text-foreground">{witness.rig}</span>
+                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${witness.status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : witness.status === 'idle' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : 'bg-muted text-muted-foreground'}`}>
                                 {witness.status}
                               </span>
                               {witness.unread_mail > 0 && (
@@ -693,9 +694,9 @@ export default function SystemPage() {
                                 </span>
                               )}
                             </div>
-                            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                            <div className="text-sm text-muted-foreground">
                               <div>Rig patrol agent</div>
-                              <div className="mt-1 font-mono text-xs text-zinc-500 dark:text-zinc-500">ID: {witness.id}</div>
+                              <div className="mt-1 font-mono text-xs text-muted-foreground/70">ID: {witness.id}</div>
                               {witness.last_check && (
                                 <div className="mt-0.5 text-xs">Last check: {new Date(witness.last_check).toLocaleString()}</div>
                               )}
@@ -705,25 +706,25 @@ export default function SystemPage() {
                       </div>
 
                       {/* Witness Controls */}
-                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => handleWitnessAction(witness.rig, 'start')}
                           disabled={isPerformingAction[`witness-start-${witness.rig}`] || witness.status !== 'stopped'}
-                          className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                         >
                           Start
                         </button>
                         <button
                           onClick={() => handleWitnessAction(witness.rig, 'stop')}
                           disabled={isPerformingAction[`witness-stop-${witness.rig}`] || witness.status === 'stopped'}
-                          className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                         >
                           Stop
                         </button>
                         <button
                           onClick={() => handleWitnessAction(witness.rig, 'restart')}
                           disabled={isPerformingAction[`witness-restart-${witness.rig}`]}
-                          className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                         >
                           Restart
                         </button>
@@ -750,49 +751,49 @@ export default function SystemPage() {
 
             {/* Refineries Section */}
             <div>
-              <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-100">Refineries ({refineries.length})</h2>
-              <div className="mb-3 text-xs text-zinc-600 dark:text-zinc-400">
+              <h2 className="mb-4 text-xl font-semibold text-foreground">Refineries ({refineries.length})</h2>
+              <div className="mb-3 text-xs text-muted-foreground">
                 Manages the Merge Queue for a Rig, intelligently merging changes
               </div>
               {(!refineriesInitiallyLoaded || refineriesLoading) ? (
                 <div className="space-y-3">
                   {[1, 2].map((i) => (
-                    <div key={i} className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900 animate-pulse">
+                    <div key={i} className="rounded-lg border border-border bg-card p-4 animate-pulse">
                       <div className="flex items-start gap-3 mb-3">
-                        <div className="h-3 w-3 rounded-full bg-zinc-300 dark:bg-zinc-700" />
+                        <div className="h-3 w-3 rounded-full bg-muted" />
                         <div className="flex-1 space-y-2">
-                          <div className="h-4 bg-zinc-300 dark:bg-zinc-700 rounded w-32" />
-                          <div className="h-3 bg-zinc-200 dark:bg-zinc-800 rounded w-48" />
+                          <div className="h-4 bg-muted rounded w-32" />
+                          <div className="h-3 bg-muted rounded w-48" />
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                         {[1, 2, 3, 4].map((j) => (
-                          <div key={j} className="h-8 bg-zinc-200 dark:bg-zinc-800 rounded" />
+                          <div key={j} className="h-8 bg-muted rounded" />
                         ))}
                       </div>
                     </div>
                   ))}
                 </div>
               ) : refineries.length === 0 ? (
-                <div className="rounded-lg border border-zinc-200 bg-white p-8 text-center dark:border-zinc-800 dark:bg-zinc-900">
-                  <p className="text-zinc-600 dark:text-zinc-400">No refineries configured</p>
+                <div className="rounded-lg border border-border bg-card p-8 text-center">
+                  <p className="text-muted-foreground">No refineries configured</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {refineries.map((refinery) => (
-                    <div key={refinery.rig} className="rounded-lg border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                    <div key={refinery.rig} className="rounded-lg border border-border bg-card p-4">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex items-start gap-3 flex-1">
                           <div className="mt-1">
-                            <div className={`h-3 w-3 rounded-full ${refinery.status === 'processing' ? 'bg-emerald-500' : refinery.status === 'active' ? 'bg-blue-500' : refinery.status === 'error' ? 'bg-red-500' : 'bg-zinc-400'}`} />
+                            <div className={`h-3 w-3 rounded-full ${refinery.status === 'processing' ? 'bg-emerald-500' : refinery.status === 'active' ? 'bg-blue-500' : refinery.status === 'error' ? 'bg-red-500' : 'bg-muted-foreground/50'}`} />
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">{refinery.rig}</span>
-                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${refinery.status === 'processing' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : refinery.status === 'active' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : refinery.status === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'}`}>
+                              <span className="font-mono font-semibold text-foreground">{refinery.rig}</span>
+                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${refinery.status === 'processing' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300' : refinery.status === 'active' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' : refinery.status === 'error' ? 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300' : 'bg-muted text-muted-foreground'}`}>
                                 {refinery.status}
                               </span>
-                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${refinery.queueDepth > 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' : 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300'}`}>
+                              <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${refinery.queueDepth > 0 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300' : 'bg-muted text-muted-foreground'}`}>
                                 Queue: {refinery.queueDepth === 0 ? '0 (empty)' : refinery.queueDepth}
                               </span>
                               {refinery.unread_mail > 0 && (
@@ -801,9 +802,9 @@ export default function SystemPage() {
                                 </span>
                               )}
                             </div>
-                            <div className="text-sm text-zinc-600 dark:text-zinc-400">
+                            <div className="text-sm text-muted-foreground">
                               <div>Merge queue management</div>
-                              <div className="mt-1 font-mono text-xs text-zinc-500 dark:text-zinc-500">
+                              <div className="mt-1 font-mono text-xs text-muted-foreground/70">
                                 ID: {refinery.id} | Agent: {refinery.agent_state}
                               </div>
                               {refinery.currentPR && (
@@ -822,7 +823,7 @@ export default function SystemPage() {
                       </div>
 
                       {/* Refinery Controls */}
-                      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
+                      <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => handleRefineryAction(refinery.rig, 'start')}
                           disabled={isPerformingAction[`refinery-start-${refinery.rig}`]}
@@ -840,21 +841,21 @@ export default function SystemPage() {
                         <button
                           onClick={() => handleRefineryAction(refinery.rig, 'restart')}
                           disabled={isPerformingAction[`refinery-restart-${refinery.rig}`]}
-                          className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                         >
                           Restart
                         </button>
                         <button
                           onClick={() => handleRefineryView(refinery.rig, 'status')}
                           disabled={isPerformingAction[`refinery-status-${refinery.rig}`]}
-                          className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                         >
                           Status
                         </button>
                         <button
                           onClick={() => handleRefineryView(refinery.rig, 'queue')}
                           disabled={isPerformingAction[`refinery-queue-${refinery.rig}`]}
-                          className="rounded-md border border-zinc-200 bg-white px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                          className="rounded-md border border-border bg-card px-3 py-1.5 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                         >
                           View Queue
                         </button>
@@ -887,29 +888,29 @@ export default function SystemPage() {
 
             {/* Dogs Section */}
             <div>
-              <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-100">Dogs</h2>
-              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="mb-4 text-xl font-semibold text-foreground">Dogs</h2>
+              <div className="rounded-lg border border-border bg-card p-6">
                 <div className="mb-4">
-                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-3">
+                  <div className="text-xs text-muted-foreground mb-3">
                     The Deacon's crew of maintenance agents handling background tasks
                   </div>
-                  <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Status Output:</div>
-                  <pre className="rounded bg-zinc-50 p-3 text-xs text-zinc-700 overflow-x-auto dark:bg-zinc-950 dark:text-zinc-300">{dogsOutput}</pre>
+                  <div className="text-sm font-medium text-foreground mb-2">Status Output:</div>
+                  <pre className="rounded bg-muted p-3 text-xs text-foreground overflow-x-auto">{dogsOutput}</pre>
                 </div>
 
                 {/* Dogs Controls */}
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => handleDogAction('list')}
                     disabled={isPerformingAction['dog-list']}
-                    className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                   >
                     List
                   </button>
                   <button
                     onClick={() => handleDogAction('status')}
                     disabled={isPerformingAction['dog-status']}
-                    className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                   >
                     Refresh Status
                   </button>
@@ -978,24 +979,24 @@ export default function SystemPage() {
 
             {/* Boot Section */}
             <div>
-              <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-100">Boot</h2>
-              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="mb-4 text-xl font-semibold text-foreground">Boot</h2>
+              <div className="rounded-lg border border-border bg-card p-6">
                 <div className="mb-4">
-                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-3">
+                  <div className="text-xs text-muted-foreground mb-3">
                     Special Dog that checks Deacon functionality every 5 minutes
                   </div>
-                  <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Status Output:</div>
-                  <pre className="rounded bg-zinc-50 p-3 text-xs text-zinc-700 overflow-x-auto dark:bg-zinc-950 dark:text-zinc-300">{bootOutput}</pre>
+                  <div className="text-sm font-medium text-foreground mb-2">Status Output:</div>
+                  <pre className="rounded bg-muted p-3 text-xs text-foreground overflow-x-auto">{bootOutput}</pre>
                 </div>
 
                 {/* Boot Controls */}
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => {
                       loadBootStatus();
                       setActionStatus({ type: 'success', text: 'Boot status refreshed' });
                     }}
-                    className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
                   >
                     Refresh Status
                   </button>
@@ -1025,22 +1026,22 @@ export default function SystemPage() {
 
             {/* Doctor Section */}
             <div>
-              <h2 className="mb-4 text-xl font-semibold text-zinc-900 dark:text-zinc-100">Doctor</h2>
-              <div className="rounded-lg border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
+              <h2 className="mb-4 text-xl font-semibold text-foreground">Doctor</h2>
+              <div className="rounded-lg border border-border bg-card p-6">
                 <div className="mb-4">
-                  <div className="text-xs text-zinc-600 dark:text-zinc-400 mb-3">
+                  <div className="text-xs text-muted-foreground mb-3">
                     Diagnostic tool that runs health checks on the workspace and can automatically fix common issues
                   </div>
-                  <div className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">Diagnostic Output:</div>
-                  <pre className="rounded bg-zinc-50 p-3 text-xs text-zinc-700 overflow-x-auto dark:bg-zinc-950 dark:text-zinc-300">{doctorOutput}</pre>
+                  <div className="text-sm font-medium text-foreground mb-2">Diagnostic Output:</div>
+                  <pre className="rounded bg-muted p-3 text-xs text-foreground overflow-x-auto">{doctorOutput}</pre>
                 </div>
 
                 {/* Doctor Controls */}
-                <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => handleDoctorAction(false)}
                     disabled={isPerformingAction['doctor-check'] || isPerformingAction['doctor-fix']}
-                    className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                    className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                   >
                     {isPerformingAction['doctor-check'] ? 'Running...' : 'Run Checks'}
                   </button>
@@ -1061,12 +1062,12 @@ export default function SystemPage() {
       {/* Mail Compose Modal */}
       {isMailModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setIsMailModalOpen(false)}>
-          <div className="w-full max-w-2xl rounded-lg border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-2xl rounded-lg border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Compose Message</h3>
+              <h3 className="text-lg font-semibold text-foreground">Compose Message</h3>
               <button
                 onClick={() => setIsMailModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1076,35 +1077,35 @@ export default function SystemPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">To</label>
+                <label className="mb-1 block text-sm font-medium text-foreground">To</label>
                 <input
                   type="text"
                   value={mailRecipient}
                   onChange={(e) => setMailRecipient(e.target.value)}
                   placeholder="Agent name"
-                  className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Subject</label>
+                <label className="mb-1 block text-sm font-medium text-foreground">Subject</label>
                 <input
                   type="text"
                   value={mailSubject}
                   onChange={(e) => setMailSubject(e.target.value)}
                   placeholder="Subject"
-                  className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Message</label>
+                <label className="mb-1 block text-sm font-medium text-foreground">Message</label>
                 <textarea
                   value={mailBody}
                   onChange={(e) => setMailBody(e.target.value)}
                   placeholder="Message"
                   rows={8}
-                  className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -1112,14 +1113,14 @@ export default function SystemPage() {
                 <button
                   onClick={() => setIsMailModalOpen(false)}
                   disabled={isSendingMail}
-                  className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                  className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSendMail}
                   disabled={isSendingMail || !mailRecipient || !mailSubject || !mailBody}
-                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   {isSendingMail ? 'Sending...' : 'Send'}
                 </button>
@@ -1132,12 +1133,12 @@ export default function SystemPage() {
       {/* Nudge Modal */}
       {isNudgeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setIsNudgeModalOpen(false)}>
-          <div className="w-full max-w-lg rounded-lg border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-lg rounded-lg border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Nudge {nudgeTarget}</h3>
+              <h3 className="text-lg font-semibold text-foreground">Nudge {nudgeTarget}</h3>
               <button
                 onClick={() => setIsNudgeModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1147,13 +1148,13 @@ export default function SystemPage() {
 
             <div className="space-y-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-zinc-700 dark:text-zinc-300">Message</label>
+                <label className="mb-1 block text-sm font-medium text-foreground">Message</label>
                 <textarea
                   value={nudgeMessage}
                   onChange={(e) => setNudgeMessage(e.target.value)}
                   placeholder="Enter your nudge message..."
                   rows={6}
-                  className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 placeholder-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:placeholder-zinc-500"
+                  className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground placeholder-muted-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   autoFocus
                 />
               </div>
@@ -1162,14 +1163,14 @@ export default function SystemPage() {
                 <button
                   onClick={() => setIsNudgeModalOpen(false)}
                   disabled={isSendingNudge}
-                  className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                  className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSendNudge}
                   disabled={isSendingNudge}
-                  className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
                 >
                   {isSendingNudge ? 'Sending...' : 'Send Nudge'}
                 </button>
@@ -1182,12 +1183,12 @@ export default function SystemPage() {
       {/* Health State Modal */}
       {isHealthStateModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setIsHealthStateModalOpen(false)}>
-          <div className="w-full max-w-4xl rounded-lg border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-4xl rounded-lg border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Deacon Health State</h3>
+              <h3 className="text-lg font-semibold text-foreground">Deacon Health State</h3>
               <button
                 onClick={() => setIsHealthStateModalOpen(false)}
-                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1196,8 +1197,8 @@ export default function SystemPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-md border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-                <pre className="max-h-96 overflow-auto p-4 text-xs text-zinc-900 dark:text-zinc-100 whitespace-pre-wrap font-mono">
+              <div className="rounded-md border border-border bg-muted">
+                <pre className="max-h-96 overflow-auto p-4 text-xs text-foreground whitespace-pre-wrap font-mono">
                   {healthStateOutput}
                 </pre>
               </div>
@@ -1205,7 +1206,7 @@ export default function SystemPage() {
               <div className="flex justify-end">
                 <button
                   onClick={() => setIsHealthStateModalOpen(false)}
-                  className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                  className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
                 >
                   Close
                 </button>
@@ -1218,12 +1219,12 @@ export default function SystemPage() {
       {/* Output Modal (for refinery status, queue, etc.) */}
       {outputModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={() => setOutputModal(null)}>
-          <div className="w-full max-w-4xl rounded-lg border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900" onClick={(e) => e.stopPropagation()}>
+          <div className="w-full max-w-4xl rounded-lg border border-border bg-card p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">{outputModal.title}</h3>
+              <h3 className="text-lg font-semibold text-foreground">{outputModal.title}</h3>
               <button
                 onClick={() => setOutputModal(null)}
-                className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1232,8 +1233,8 @@ export default function SystemPage() {
             </div>
 
             <div className="space-y-4">
-              <div className="rounded-md border border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
-                <pre className="max-h-96 overflow-auto p-4 text-xs text-zinc-900 dark:text-zinc-100 whitespace-pre-wrap font-mono">
+              <div className="rounded-md border border-border bg-muted">
+                <pre className="max-h-96 overflow-auto p-4 text-xs text-foreground whitespace-pre-wrap font-mono">
                   {outputModal.output}
                 </pre>
               </div>
@@ -1241,7 +1242,7 @@ export default function SystemPage() {
               <div className="flex justify-end">
                 <button
                   onClick={() => setOutputModal(null)}
-                  className="rounded-md border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                  className="rounded-md border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
                 >
                   Close
                 </button>

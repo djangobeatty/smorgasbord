@@ -64,6 +64,7 @@ export function useGtStatus(options: UseGtStatusOptions = {}): UseGtStatusResult
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const hasDataRef = useRef(false);
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -74,10 +75,23 @@ export function useGtStatus(options: UseGtStatusOptions = {}): UseGtStatusResult
       }
 
       const result = await response.json();
-      setStatus(result);
-      setError(null);
+
+      // Only update status if we got valid data
+      // Don't replace good data with empty data on transient errors
+      const hasData = result.agents?.length > 0 || result.rigs?.length > 0;
+      if (hasData) {
+        hasDataRef.current = true;
+        setStatus(result);
+        setError(null);
+      } else if (!hasDataRef.current) {
+        // First load - set even if empty
+        setStatus(result);
+        setError(null);
+      }
+      // If we had data and got empty result, keep old data (transient error)
     } catch (err) {
       setError(err instanceof Error ? err : new Error('Unknown error'));
+      // Keep existing status on error
     } finally {
       setIsLoading(false);
     }

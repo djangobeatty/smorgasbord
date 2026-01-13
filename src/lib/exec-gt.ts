@@ -5,9 +5,6 @@
 
 import { exec } from 'child_process';
 import { promisify } from 'util';
-import { existsSync, readFileSync } from 'fs';
-import { join, dirname } from 'path';
-import { homedir } from 'os';
 
 const execAsync = promisify(exec);
 
@@ -17,10 +14,6 @@ interface ExecGtOptions {
 }
 
 const DEFAULT_TIMEOUT = 10000;
-const CONFIG_PATH = join(homedir(), '.mission-control', 'config.json');
-
-// Cache the detected/configured Gas Town root
-let cachedGtRoot: string | null = null;
 
 // Cache for gt status --json results
 interface StatusCache {
@@ -32,91 +25,11 @@ let statusFetchPromise: Promise<unknown> | null = null;
 const STATUS_CACHE_TTL = 5000; // 5 second TTL to match beads polling interval
 
 /**
- * Read configuration from config file
+ * Get the Gas Town root directory from GT_BASE_PATH env var
+ * Returns null if not configured
  */
-function getConfig(): { gtBasePath: string | null; binPaths: string[] } {
-  try {
-    if (existsSync(CONFIG_PATH)) {
-      const content = readFileSync(CONFIG_PATH, 'utf-8');
-      const config = JSON.parse(content);
-
-      let gtBasePath: string | null = null;
-      if (config.gtBasePath && typeof config.gtBasePath === 'string') {
-        // Expand ~ to home directory
-        if (config.gtBasePath.startsWith('~')) {
-          gtBasePath = join(homedir(), config.gtBasePath.slice(1));
-        } else {
-          gtBasePath = config.gtBasePath;
-        }
-      }
-
-      const binPaths = Array.isArray(config.binPaths)
-        ? config.binPaths.map((p: string) => p.startsWith('~') ? join(homedir(), p.slice(1)) : p)
-        : [];
-
-      return { gtBasePath, binPaths };
-    }
-  } catch {
-    // Ignore config read errors
-  }
-  return { gtBasePath: null, binPaths: [] };
-}
-
-/**
- * Find the Gas Town root directory by walking up from the current directory
- * looking for a .gt directory
- */
-function findGtRoot(startPath: string = process.cwd(), maxLevels: number = 10): string | null {
-  let currentPath = startPath;
-
-  for (let i = 0; i < maxLevels; i++) {
-    const gtPath = join(currentPath, '.gt');
-    if (existsSync(gtPath)) {
-      return currentPath;
-    }
-
-    const parentPath = dirname(currentPath);
-    if (parentPath === currentPath) {
-      // Reached filesystem root
-      break;
-    }
-    currentPath = parentPath;
-  }
-
-  return null;
-}
-
-/**
- * Get the Gas Town root directory
- * Priority: 1) GT_BASE_PATH env var, 2) Config file, 3) Auto-detect, 4) cwd
- */
-function getGtRoot(): string {
-  // Check env var first (for CI/deployment overrides)
-  if (process.env.GT_BASE_PATH) {
-    return process.env.GT_BASE_PATH;
-  }
-
-  // Use cached value if available
-  if (cachedGtRoot) {
-    return cachedGtRoot;
-  }
-
-  // Check config file
-  const { gtBasePath } = getConfig();
-  if (gtBasePath && existsSync(join(gtBasePath, '.gt'))) {
-    cachedGtRoot = gtBasePath;
-    return gtBasePath;
-  }
-
-  // Try to detect from current directory
-  const detected = findGtRoot();
-  if (detected) {
-    cachedGtRoot = detected;
-    return detected;
-  }
-
-  // Fallback to current directory
-  return process.cwd();
+function getGtRoot(): string | null {
+  return process.env.GT_BASE_PATH || null;
 }
 
 /**
@@ -129,24 +42,14 @@ export async function execGt(
 ): Promise<{ stdout: string; stderr: string }> {
   const { timeout = DEFAULT_TIMEOUT, cwd } = options;
 
-  // Get configured bin paths from config
-  const { binPaths } = getConfig();
-
-  // Prepend configured bin paths to environment PATH
-  // This allows users to configure where gt/bd/node are installed
-  const extendedPath = binPaths.length > 0
-    ? [...binPaths, process.env.PATH || ''].join(':')
-    : process.env.PATH || '';
-
-  // Use provided cwd, or auto-detect Gas Town root
-  const workingDir = cwd || getGtRoot();
+  // Use provided cwd, or GT_BASE_PATH if configured
+  const workingDir = cwd || getGtRoot() || undefined;
 
   return execAsync(command, {
     timeout,
     cwd: workingDir,
     env: {
       ...process.env,
-      PATH: extendedPath,
     },
   });
 }
@@ -208,13 +111,6 @@ export async function execBd(
 }
 
 /**
- * Clear the cached Gas Town root (call after config changes)
- */
-export function resetGtRootCache(): void {
-  cachedGtRoot = null;
-}
-
-/**
  * Clear the cached gt status result (useful for testing)
  */
 export function resetStatusCache(): void {
@@ -224,7 +120,8 @@ export function resetStatusCache(): void {
 
 /**
  * Get the currently resolved Gas Town root path (for display in settings)
+ * Returns null if GT_BASE_PATH is not configured
  */
-export function getResolvedGtRoot(): string {
+export function getResolvedGtRoot(): string | null {
   return getGtRoot();
 }

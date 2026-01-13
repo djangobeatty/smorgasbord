@@ -1,6 +1,7 @@
 'use client';
 
 import { ProjectModeProvider } from '@/lib/project-mode';
+import { ThemeProvider } from '@/lib/theme-provider';
 import type { ReactNode } from 'react';
 
 interface ProvidersProps {
@@ -8,5 +9,9 @@ interface ProvidersProps {
 }
 
 export function Providers({ children }: ProvidersProps) {
-  return <ProjectModeProvider>{children}</ProjectModeProvider>;
+  return (
+    <ThemeProvider>
+      <ProjectModeProvider>{children}</ProjectModeProvider>
+    </ThemeProvider>
+  );
 }

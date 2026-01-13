@@ -6,7 +6,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { loadConfig, saveConfig } from '@/lib/config-loader';
-import { resetGtRootCache } from '@/lib/exec-gt';
 import type { DashboardConfig } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
@@ -42,9 +41,6 @@ export async function PUT(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Reset the cached Gas Town root when config changes
-    resetGtRootCache();
 
     return NextResponse.json({ success: true, config });
   } catch (error) {

@@ -19,9 +19,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const address = searchParams.get('address') || 'overseer';
 
-    // Use gt mail inbox command
+    // Use gt mail inbox which returns proper thread_id and reply_to fields
     const { stdout } = await execGt(
-      `gt mail inbox ${address} --json 2>/dev/null || gt mail inbox ${address} 2>/dev/null || echo "[]"`,
+      `gt mail inbox ${address} --json 2>/dev/null || echo "[]"`,
       {
         timeout: 10000,
         cwd: process.env.GT_BASE_PATH || process.cwd(),
@@ -32,59 +32,35 @@ export async function GET(request: Request) {
     let unreadCount = 0;
 
     try {
-      // Try parsing as JSON first (if gt supports --json)
       const parsed = JSON.parse(stdout.trim() || '[]');
       if (Array.isArray(parsed)) {
-        messages = parsed.map((msg: any, idx: number) => ({
-          id: msg.id || `msg-${idx}`,
-          from: msg.from || 'unknown',
-          to: msg.to || address,
-          subject: msg.subject || '(no subject)',
-          body: msg.body || msg.content || '',
-          timestamp: msg.timestamp || msg.date || new Date().toISOString(),
-          read: msg.read ?? !msg.unread,
-        }));
-        unreadCount = messages.filter(m => !m.read).length;
+        messages = parsed.map((msg: Record<string, unknown>) => {
+          const isRead = msg.read as boolean ?? false;
+          if (!isRead) unreadCount++;
+
+          return {
+            id: msg.id as string || '',
+            from: msg.from as string || 'unknown',
+            to: msg.to as string || address,
+            subject: msg.subject as string || '(no subject)',
+            body: msg.body as string || msg.content as string || '',
+            timestamp: msg.timestamp as string || msg.date as string || new Date().toISOString(),
+            read: isRead,
+            // thread_id and reply_to come directly from gt mail inbox
+            threadId: msg.thread_id as string | undefined,
+            replyTo: msg.reply_to as string | undefined,
+            priority: msg.priority as string | undefined,
+            messageType: msg.type as string | undefined,
+          };
+        });
+
+        // Sort by timestamp descending (newest first)
+        messages.sort((a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
       }
-    } catch {
-      // Parse text format
-      const lines = stdout.split('\n').filter((l: string) => l.trim());
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-
-        // Try to parse various mail formats
-        // Format 1: [unread] from: subject
-        const match1 = line.match(/^\s*(\[unread\])?\s*(\S+):\s*(.+)/);
-        if (match1) {
-          const isUnread = !!match1[1];
-          if (isUnread) unreadCount++;
-          messages.push({
-            id: `msg-${i}`,
-            from: match1[2],
-            to: address,
-            subject: match1[3],
-            body: '',
-            timestamp: new Date().toISOString(),
-            read: !isUnread,
-          });
-          continue;
-        }
-
-        // Format 2: ID | From | Subject | Date
-        const match2 = line.match(/^\s*(\S+)\s*\|\s*(\S+)\s*\|\s*(.+?)\s*\|\s*(.+)/);
-        if (match2) {
-          messages.push({
-            id: match2[1],
-            from: match2[2],
-            to: address,
-            subject: match2[3],
-            body: '',
-            timestamp: match2[4],
-            read: true,
-          });
-        }
-      }
+    } catch (parseError) {
+      console.error('Failed to parse inbox:', parseError);
     }
 
     const response: InboxResponse = {
@@ -95,7 +71,6 @@ export async function GET(request: Request) {
     return NextResponse.json(response);
   } catch (error) {
     console.error('Error fetching mail inbox:', error);
-    // Return empty inbox on error
     return NextResponse.json({
       messages: [],
       unreadCount: 0,

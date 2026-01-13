@@ -30,9 +30,9 @@ function CollapsibleSection({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const variantStyles = {
-    default: 'text-zinc-100',
+    default: 'text-foreground',
     warning: 'text-amber-400',
-    muted: 'text-zinc-400',
+    muted: 'text-muted-foreground',
   };
 
   return (
@@ -43,7 +43,7 @@ function CollapsibleSection({
       >
         <svg
           className={cn(
-            'w-4 h-4 text-zinc-500 transition-transform',
+            'w-4 h-4 text-muted-foreground transition-transform',
             isOpen && 'rotate-90'
           )}
           fill="none"
@@ -65,9 +65,9 @@ function CollapsibleSection({
         >
           {title}
         </h3>
-        <span className="text-xs text-zinc-500">({count})</span>
+        <span className="text-xs text-muted-foreground">({count})</span>
       </button>
-      {isOpen && <div className="grid grid-cols-1 md:grid-cols-2 gap-3">{children}</div>}
+      {isOpen && <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">{children}</div>}
     </div>
   );
 }
@@ -85,7 +85,7 @@ export function ConvoyList({ convoys, issues = [], onSelectConvoy, onConvoyConte
 
   if (convoys.length === 0) {
     return (
-      <div className="text-center py-12 text-zinc-500">
+      <div className="text-center py-12 text-muted-foreground">
         <p>No convoys found</p>
       </div>
     );

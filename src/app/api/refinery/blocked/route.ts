@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { execGt } from '@/lib/exec-gt';
+import { execGtWithAutoSync } from '@/lib/beads-sync';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,7 +29,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { stdout, stderr } = await execGt(`gt refinery blocked ${sanitizedRig}`);
+    const { stdout, stderr } = await execGtWithAutoSync(
+      `gt refinery blocked ${sanitizedRig}`,
+      sanitizedRig
+    );
 
     return NextResponse.json({
       success: true,

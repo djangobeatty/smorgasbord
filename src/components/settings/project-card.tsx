@@ -5,19 +5,18 @@ import type { ProjectConfig } from '@/types/config';
 
 interface ProjectCardProps {
   project: ProjectConfig;
-  isActive: boolean;
   onEdit: (project: ProjectConfig) => void;
   onDelete: (project: ProjectConfig) => void;
-  onSetActive: (project: ProjectConfig) => void;
+  onToggleActive: (project: ProjectConfig) => void;
 }
 
 export function ProjectCard({
   project,
-  isActive,
   onEdit,
   onDelete,
-  onSetActive,
+  onToggleActive,
 }: ProjectCardProps) {
+  const isActive = project.active !== false; // Default to active if undefined
   return (
     <div
       className={cn(
@@ -57,14 +56,17 @@ export function ProjectCard({
         >
           Edit
         </button>
-        {!isActive && (
-          <button
-            onClick={() => onSetActive(project)}
-            className="flex-1 px-2 py-1 text-xs rounded bg-green-100 hover:bg-green-200 text-green-700 dark:bg-green-900/50 dark:hover:bg-green-800/50 dark:text-green-300 transition-colors"
-          >
-            Set Active
-          </button>
-        )}
+        <button
+          onClick={() => onToggleActive(project)}
+          className={cn(
+            'flex-1 px-2 py-1 text-xs rounded transition-colors',
+            isActive
+              ? 'bg-amber-100 hover:bg-amber-200 text-amber-700 dark:bg-amber-900/50 dark:hover:bg-amber-800/50 dark:text-amber-300'
+              : 'bg-green-100 hover:bg-green-200 text-green-700 dark:bg-green-900/50 dark:hover:bg-green-800/50 dark:text-green-300'
+          )}
+        >
+          {isActive ? 'Deactivate' : 'Activate'}
+        </button>
         <button
           onClick={() => onDelete(project)}
           className="px-2 py-1 text-xs rounded bg-red-100 hover:bg-red-200 text-red-600 dark:bg-red-900/30 dark:hover:bg-red-800/50 dark:text-red-400 transition-colors"

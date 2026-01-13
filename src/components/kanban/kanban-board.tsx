@@ -7,6 +7,15 @@ import { FilterBar } from './filter-bar';
 import { SearchBox } from './search-box';
 import { ContextMenu } from './context-menu';
 import { AlertModal } from '@/components/settings';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+
+interface ColumnPaginationData {
+  total?: number;
+  hasMore?: boolean;
+  isLoadingMore?: boolean;
+  onLoadMore?: () => void;
+}
 
 interface KanbanBoardProps {
   issues: Issue[];
@@ -14,6 +23,7 @@ interface KanbanBoardProps {
   highlightedIssueId?: string | null;
   selectedIssue?: Issue | null;
   onSelectIssue?: (issue: Issue | null) => void;
+  columnPagination?: Record<string, ColumnPaginationData>;
 }
 
 // Map statuses to columns
@@ -32,7 +42,7 @@ const columns = [
   { id: 'closed', title: 'Closed', statuses: ['closed'] as IssueStatus[] },
 ];
 
-export function KanbanBoard({ issues, onStatusChange, highlightedIssueId, selectedIssue, onSelectIssue }: KanbanBoardProps) {
+export function KanbanBoard({ issues, onStatusChange, highlightedIssueId, selectedIssue, onSelectIssue, columnPagination }: KanbanBoardProps) {
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRig, setSelectedRig] = useState<string | null>(null);
@@ -64,9 +74,15 @@ export function KanbanBoard({ issues, onStatusChange, highlightedIssueId, select
     const assigneeSet = new Set<string>();
 
     issues.forEach((issue) => {
-      if (issue.assignee) {
+      // Use _rig field if available (added by beads-reader)
+      if (issue._rig) {
+        rigSet.add(issue._rig);
+      } else if (issue.assignee) {
+        // Fall back to extracting from assignee
         const rigMatch = issue.assignee.match(/^([^/]+)/);
         if (rigMatch) rigSet.add(rigMatch[1]);
+      }
+      if (issue.assignee) {
         assigneeSet.add(issue.assignee);
       }
     });
@@ -93,9 +109,9 @@ export function KanbanBoard({ issues, onStatusChange, highlightedIssueId, select
         if (!matchesSearch) return false;
       }
 
-      // Rig filter
+      // Rig filter - use _rig field added by beads-reader, fall back to extracting from assignee
       if (selectedRig) {
-        const issueRig = issue.assignee?.match(/^([^/]+)/)?.[1];
+        const issueRig = issue._rig || issue.assignee?.match(/^([^/]+)/)?.[1];
         if (issueRig !== selectedRig) return false;
       }
 
@@ -264,7 +280,7 @@ export function KanbanBoard({ issues, onStatusChange, highlightedIssueId, select
       </div>
 
       {/* Summary */}
-      <div className="flex items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+      <div className="flex items-center gap-4 text-sm text-muted-foreground">
         <span>
           Showing {filteredIssues.length} of {issues.filter(i => i.issue_type !== 'agent').length} issues
         </span>
@@ -272,21 +288,28 @@ export function KanbanBoard({ issues, onStatusChange, highlightedIssueId, select
 
       {/* Columns */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {columns.map((column) => (
-          <KanbanColumn
-            key={column.id}
-            title={column.title}
-            status={column.id}
-            issues={issuesByColumn[column.id] || []}
-            onIssueClick={onSelectIssue}
-            onIssueDragStart={handleDragStart}
-            onIssueContextMenu={handleContextMenu}
-            onDragOver={() => handleDragOver(column.id)}
-            onDrop={handleDrop}
-            isDropTarget={dropTargetColumn === column.id}
-            highlightedIssueId={highlightedIssueId}
-          />
-        ))}
+        {columns.map((column) => {
+          const pagination = columnPagination?.[column.id];
+          return (
+            <KanbanColumn
+              key={column.id}
+              title={column.title}
+              status={column.id}
+              issues={issuesByColumn[column.id] || []}
+              total={pagination?.total}
+              hasMore={pagination?.hasMore}
+              isLoadingMore={pagination?.isLoadingMore}
+              onLoadMore={pagination?.onLoadMore}
+              onIssueClick={onSelectIssue}
+              onIssueDragStart={handleDragStart}
+              onIssueContextMenu={handleContextMenu}
+              onDragOver={() => handleDragOver(column.id)}
+              onDrop={handleDrop}
+              isDropTarget={dropTargetColumn === column.id}
+              highlightedIssueId={highlightedIssueId}
+            />
+          );
+        })}
       </div>
 
       {/* Context Menu */}
@@ -309,44 +332,45 @@ export function KanbanBoard({ issues, onStatusChange, highlightedIssueId, select
           }}
         >
           <div
-            className="bg-white dark:bg-zinc-900 rounded-lg p-6 max-w-md w-full mx-4 border border-zinc-200 dark:border-zinc-700"
+            className="bg-card rounded-lg p-6 max-w-md w-full mx-4 border border-border"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+            <h3 className="text-lg font-semibold text-foreground mb-2">
               Escalate to Mayor
             </h3>
-            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-1">
+            <p className="text-sm text-muted-foreground mb-1">
               Issue: {escalateIssue.title}
             </p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-4 font-mono">
+            <p className="text-xs text-muted-foreground mb-4 font-mono">
               {escalateIssue.id}
             </p>
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
+            <label className="block text-sm font-medium text-muted-foreground mb-2">
               Optional Message
             </label>
-            <textarea
+            <Textarea
               value={escalateMessage}
               onChange={(e) => setEscalateMessage(e.target.value)}
               placeholder="Add context about why this needs attention..."
-              className="w-full rounded-md border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-800 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-500 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none"
               rows={4}
+              className="resize-none"
             />
             <div className="flex gap-2 mt-4">
-              <button
+              <Button
                 onClick={handleSendEscalation}
-                className="flex-1 px-4 py-2 text-sm rounded bg-amber-500 hover:bg-amber-600 text-white transition-colors font-medium"
+                className="flex-1 bg-amber-500 hover:bg-amber-600"
               >
                 Send Escalation
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => {
                   setEscalateIssue(null);
                   setEscalateMessage('');
                 }}
-                className="flex-1 px-4 py-2 text-sm rounded bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-300 dark:hover:bg-zinc-600 text-zinc-700 dark:text-zinc-300 transition-colors"
+                className="flex-1"
               >
                 Cancel
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -48,7 +48,7 @@
 
 :root {
   --radius: 0.625rem;
-  --background: oklch(1 0 0);
+  --background: oklch(0.98 0 0);  /* zinc-50 equivalent */
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -123,3 +123,67 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* =============================================================================
+   SMORGASBORD THEME
+   Feral kawaii vibes - go wild here
+   ============================================================================= */
+
+.theme-smorgasbord {
+  /* Colors - placeholder values, replace with your palette */
+  --radius: 1rem;
+  --background: oklch(0.97 0.02 320);      /* soft pink */
+  --foreground: oklch(0.25 0.1 280);       /* deep purple */
+  --card: oklch(0.99 0.015 340);           /* cream pink */
+  --card-foreground: oklch(0.25 0.1 280);
+  --popover: oklch(0.99 0.015 340);
+  --popover-foreground: oklch(0.25 0.1 280);
+  --primary: oklch(0.65 0.25 320);         /* hot pink */
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.85 0.15 180);       /* mint */
+  --secondary-foreground: oklch(0.25 0.1 180);
+  --muted: oklch(0.92 0.03 320);
+  --muted-foreground: oklch(0.5 0.1 280);
+  --accent: oklch(0.8 0.2 80);             /* golden yellow */
+  --accent-foreground: oklch(0.25 0.1 80);
+  --destructive: oklch(0.65 0.25 25);      /* coral red */
+  --border: oklch(0.85 0.1 320);
+  --input: oklch(0.9 0.05 320);
+  --ring: oklch(0.7 0.2 280);
+
+  /* Chart colors - make them pop */
+  --chart-1: oklch(0.7 0.25 320);          /* pink */
+  --chart-2: oklch(0.7 0.2 180);           /* teal */
+  --chart-3: oklch(0.75 0.2 80);           /* yellow */
+  --chart-4: oklch(0.65 0.25 280);         /* purple */
+  --chart-5: oklch(0.7 0.2 140);           /* green */
+
+  /* Sidebar */
+  --sidebar: oklch(0.95 0.03 320);
+  --sidebar-foreground: oklch(0.25 0.1 280);
+  --sidebar-primary: oklch(0.65 0.25 320);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.9 0.1 180);
+  --sidebar-accent-foreground: oklch(0.25 0.1 180);
+  --sidebar-border: oklch(0.85 0.1 320);
+  --sidebar-ring: oklch(0.7 0.2 280);
+}
+
+/* Smorgasbord extras - decorations, animations, etc. */
+.theme-smorgasbord {
+  /* Example: Add subtle pattern to body background */
+  /* background-image: url('/patterns/dots.svg'); */
+
+  /* Example: Chonkier shadows */
+  /* --shadow-sm: 0 2px 8px oklch(0.7 0.15 320 / 20%); */
+}
+
+/* Example: Add decorations to cards in smorgasbord theme */
+/*
+.theme-smorgasbord .card {
+  background-image: url('/illustrations/corner-creature.svg');
+  background-position: bottom right;
+  background-repeat: no-repeat;
+  background-size: 48px;
+}
+*/

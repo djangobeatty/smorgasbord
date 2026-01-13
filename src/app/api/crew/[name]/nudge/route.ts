@@ -1,7 +1,8 @@
 /**
  * API Route: POST /api/crew/[name]/nudge
- * Sends a nudge message to a crew member
- * Executes: gt nudge <rig>/<name> -m <message>
+ * Sends a nudge to a crew member (tap on shoulder)
+ * Executes: gt nudge <rig>/<name> [-m <message>]
+ * Message is optional - empty nudge is just a tap
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -10,7 +11,7 @@ import { execGt } from '@/lib/exec-gt';
 export const dynamic = 'force-dynamic';
 
 interface NudgeRequest {
-  message: string;
+  message?: string;  // Optional - empty nudge is valid
   rig: string;
 }
 
@@ -29,24 +30,9 @@ export async function POST(
       );
     }
 
-    if (!body.message || typeof body.message !== 'string') {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      );
-    }
-
     if (!body.rig || typeof body.rig !== 'string') {
       return NextResponse.json(
         { error: 'Rig is required' },
-        { status: 400 }
-      );
-    }
-
-    const message = body.message.trim();
-    if (message.length === 0) {
-      return NextResponse.json(
-        { error: 'Message cannot be empty' },
         { status: 400 }
       );
     }
@@ -62,12 +48,15 @@ export async function POST(
       );
     }
 
-    // Escape message for shell safety
+    // Build command - gt nudge requires a message, use default if empty
+    // Crew members are at rig/crew/name path
+    const message = (body.message || '').trim() || 'nudge';
     const escapedMessage = message.replace(/'/g, "'\\''");
+    const command = `gt nudge ${sanitizedRig}/crew/${sanitizedName} -m '${escapedMessage}'`;
 
     try {
       const { stdout, stderr } = await execGt(
-        `gt nudge ${sanitizedRig}/${sanitizedName} -m '${escapedMessage}'`,
+        command,
         {
           timeout: 10000,
           cwd: process.env.GT_BASE_PATH || process.cwd(),

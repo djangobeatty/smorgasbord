@@ -21,7 +21,7 @@ export function NavBar() {
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-4">
           <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
-            {activeProject?.name || 'Gas Town Dashboard'}
+            {activeProject?.name || 'Smorgasbord'}
           </h1>
           {isBeadsOnly && (
             <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
