@@ -255,8 +255,10 @@ html.theme-smorgasbord,
 /* Emoji spans inside headings should show their natural colors, not gradient */
 html.theme-smorgasbord h1 > span,
 html.theme-smorgasbord h2 > span,
+html.theme-smorgasbord h3 > span,
 .theme-smorgasbord h1 > span,
-.theme-smorgasbord h2 > span {
+.theme-smorgasbord h2 > span,
+.theme-smorgasbord h3 > span {
   -webkit-text-fill-color: initial !important;
   background: none !important;
   -webkit-background-clip: initial !important;
@@ -635,16 +637,6 @@ html.theme-smorgasbord h3.uppercase.tracking-wide,
   background-clip: initial !important;
   font-weight: 700 !important;
   font-size: 0.75rem !important;
-}
-
-/* CardTitle elements (h3) with flex layout should use body font, not Cherry Bomb gradient */
-html.theme-smorgasbord h3.flex,
-.theme-smorgasbord h3.flex {
-  font-family: var(--font-mplus-rounded), 'M PLUS Rounded 1c', system-ui, sans-serif !important;
-  background: none !important;
-  -webkit-background-clip: initial !important;
-  -webkit-text-fill-color: currentColor !important;
-  background-clip: initial !important;
 }
 
 /* ==================== TERMINAL SCREEN DISPLAYS ==================== */

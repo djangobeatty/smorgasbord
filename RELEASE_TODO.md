@@ -1,25 +1,28 @@
 # Release TODO
 
 ## Cleanup & Rename for Release
-- [ ] Rename package.json `name` from `gt_dashboard` to `smorgasbord`
+- [x] Rename package.json `name` from `gt_dashboard` to `smorgasbord`
 - [ ] Extract to standalone repo (not inside gt rig structure)
 - [ ] Fresh git history (or squash)
-- [ ] Update any remaining "mission-control" or "gt_dashboard" references in code comments
-- [ ] Clean up legacy `~/.mission-control` references in:
-  - `src/types/config.ts` (CONFIG_PATH, CONFIG_DIR exports)
-  - `src/lib/config-loader.ts` (getConfigPath, getConfigDir)
+- [x] Update any remaining "mission-control" or "gt_dashboard" references in code comments
+- [x] Clean up legacy `~/.mission-control` references -> now `~/.smorgasbord`
 
-## Clean Up Old Abandoned Files
-- [ ] Audit for orphaned/abandoned route folders and components
-- [ ] Check for stale component files that are no longer imported
-- [ ] Review and remove any unused API routes
-- [ ] Standardize file naming conventions across codebase
+## Dead Code Removed
+- [x] Deleted `/api/config/` - dead API route
+- [x] Deleted `src/lib/config-loader.ts` - unused
+- [x] Deleted `src/lib/use-config.ts` - unused
+- [x] Removed `CONFIG_PATH`, `CONFIG_DIR` from `src/types/config.ts`
+- [x] Removed config exports from `src/lib/index.ts`
+
+## Orphaned Routes Removed
+- [x] Deleted `/app/convoys/` - empty folder
+- [x] Deleted `/app/crew/` - replaced by /workers
+- [x] Deleted `/app/polecats/` - replaced by /workers
+- [x] Deleted `/app/status/` - replaced by /system
+- [x] Deleted `/app/witnesses/` - replaced by /system
 
 ## Recently Fixed
-- [x] `src/lib/exec-gt.ts` - Simplified to use only GT_BASE_PATH env var (no auto-detection magic). Returns null if not configured, APIs return helpful error.
-
-## Fixed
-- [x] `/api/rigs/route.ts` - was using duplicate `getGtBasePath()` with wrong env var (`GT_TOWN_ROOT`), now uses `getResolvedGtRoot()` from exec-gt.ts
+- [x] `src/lib/exec-gt.ts` - Simplified to use only GT_BASE_PATH env var (no auto-detection magic)
 
 ## What Might Break Running Outside GT
 
@@ -44,9 +47,3 @@ These API routes call `gt` or `bd` commands and will fail if not installed:
 1. Gas Town CLI installed (`gt` command in PATH)
 2. `GT_BASE_PATH` set in `.env.local` pointing to GT installation (required - no auto-detection)
 3. Gas Town mayor daemon running (`gt mayor start`)
-
-### Graceful Degradation Ideas
-- [ ] Show helpful error when gt CLI not found
-- [ ] Show setup wizard if GT_BASE_PATH not configured
-- [ ] Disable features that require gt when not available
-- [ ] Better error messages when gt commands fail

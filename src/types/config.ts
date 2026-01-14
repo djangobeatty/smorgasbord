@@ -99,12 +99,6 @@ export const DEFAULT_CONFIG: DashboardConfig = {
 };
 
 /**
- * Configuration file location
- */
-export const CONFIG_PATH = '~/.mission-control/config.json';
-export const CONFIG_DIR = '~/.mission-control';
-
-/**
  * Result type for config operations
  */
 export interface ConfigResult<T> {
