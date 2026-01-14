@@ -549,7 +549,7 @@ export default function SystemPage() {
                     Nudge
                   </button>
                   <button
-                    onClick={() => handleOpenMail('mayor')}
+                    onClick={() => handleOpenMail('mayor/')}
                     className="rounded-md border border-purple-200 bg-purple-50 px-3 py-2 text-sm font-medium text-purple-700 hover:bg-purple-100 dark:border-purple-900 dark:bg-purple-950 dark:text-purple-400"
                   >
                     Mail

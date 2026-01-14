@@ -58,13 +58,11 @@ export async function POST(request: NextRequest) {
 
     try {
       // Execute gt mail send command
-      // Format: gt mail send <recipient> [-s '<subject>'] -m '<body>' [--reply-to <id>] [--type reply]
-      let cmd = `gt mail send '${escapedTo}'`;
-      if (subject) {
-        const escapedSubject = subject.replace(/'/g, "'\\''");
-        cmd += ` -s '${escapedSubject}'`;
-      }
-      cmd += ` -m '${escapedBody}'`;
+      // Format: gt mail send <recipient> -s '<subject>' -m '<body>' [--reply-to <id>] [--type reply]
+      // Note: subject is required by gt mail send
+      const finalSubject = subject || 'Dashboard Message';
+      const escapedSubject = finalSubject.replace(/'/g, "'\\''");
+      let cmd = `gt mail send '${escapedTo}' -s '${escapedSubject}' -m '${escapedBody}'`;
 
       // Add reply-to for threading
       if (replyTo) {
