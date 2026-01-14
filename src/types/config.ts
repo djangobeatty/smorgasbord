@@ -31,7 +31,7 @@ export interface ProjectConfig {
 /**
  * Available visual themes
  */
-export type VisualTheme = 'corporate' | 'smorgasbord';
+export type VisualTheme = 'hangover' | 'smorgasbord';
 
 /**
  * Feature mode: gastown (full features) or beads-only (kanban only)
@@ -93,7 +93,7 @@ export const DEFAULT_CONFIG: DashboardConfig = {
     defaultView: 'kanban',
     pollingInterval: 5000,
     autoRefresh: true,
-    theme: 'corporate',
+    theme: 'hangover',
     featureMode: 'gastown',
   },
 };

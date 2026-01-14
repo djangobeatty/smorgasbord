@@ -323,12 +323,12 @@ export default function Settings() {
                   onChange={(value) => setTheme(value as VisualTheme)}
                   options={[
                     { value: 'smorgasbord', label: 'envs.now' },
-                    { value: 'corporate', label: 'Corporate' },
+                    { value: 'hangover', label: 'Hangover' },
                   ]}
                   className="max-w-xs"
                 />
                 <p className="text-xs text-muted-foreground">
-                  envs.now is the default kawaii theme. Corporate is a clean professional look.
+                  envs.now is the default kawaii theme. Hangover is for when you can&apos;t handle the colours.
                 </p>
               </div>
 

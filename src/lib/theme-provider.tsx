@@ -27,10 +27,10 @@ export function ThemeProvider({ children, defaultTheme = 'smorgasbord' }: ThemeP
     const root = document.documentElement;
 
     // Remove all theme classes
-    root.classList.remove('theme-corporate', 'theme-smorgasbord');
+    root.classList.remove('theme-hangover', 'theme-smorgasbord');
 
-    // Add new theme class (corporate is default, so we only add class for non-default)
-    if (newTheme !== 'corporate') {
+    // Add new theme class (hangover is default, so we only add class for non-default)
+    if (newTheme !== 'hangover') {
       root.classList.add(`theme-${newTheme}`);
     }
   }, []);
@@ -39,7 +39,7 @@ export function ThemeProvider({ children, defaultTheme = 'smorgasbord' }: ThemeP
   useEffect(() => {
     try {
       const stored = localStorage.getItem(THEME_STORAGE_KEY) as VisualTheme | null;
-      if (stored && (stored === 'corporate' || stored === 'smorgasbord')) {
+      if (stored && (stored === 'hangover' || stored === 'smorgasbord')) {
         setThemeState(stored);
         applyTheme(stored);
       }
