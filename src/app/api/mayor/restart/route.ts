@@ -10,11 +10,11 @@ export const dynamic = 'force-dynamic';
 
 export async function POST() {
   try {
-    // Execute gt spawn mayor command to restart the mayor
+    // Execute gt mayor restart command
     const { stdout, stderr } = await execGt(
-      'gt spawn mayor',
+      'gt mayor restart',
       {
-        timeout: 15000,
+        timeout: 30000,
         cwd: process.env.GT_BASE_PATH || process.cwd(),
       }
     );
