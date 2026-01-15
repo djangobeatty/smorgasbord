@@ -5,9 +5,24 @@
  */
 
 import { NextResponse } from 'next/server';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { getBeadsReader } from '@/lib/beads-reader';
-import { getGtStatus, execGt } from '@/lib/exec-gt';
+import { getGtStatus, execGt, getResolvedGtRoot } from '@/lib/exec-gt';
 import type { Issue, Rig, Polecat, Witness, Agent, RoleType, AgentState, RigState, Convoy, WitnessStatus, Refinery, RefineryStatus } from '@/types/beads';
+
+// Type for rigs.json registry
+interface RigsRegistry {
+  version: number;
+  rigs: Record<string, {
+    git_url: string;
+    added_at: string;
+    beads: {
+      repo: string;
+      prefix: string;
+    };
+  }>;
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -289,6 +304,34 @@ function parseRigFromIssue(issue: Issue): Rig | null {
 }
 
 /**
+ * Fetch rigs from mayor/rigs.json (canonical source)
+ */
+async function fetchRigsFromRegistry(): Promise<Rig[]> {
+  try {
+    const gtBasePath = getResolvedGtRoot();
+    if (!gtBasePath) {
+      console.log('[Beads API] GT_BASE_PATH not configured, skipping rigs.json');
+      return [];
+    }
+
+    const rigsJsonPath = join(gtBasePath, 'mayor', 'rigs.json');
+    const data = await readFile(rigsJsonPath, 'utf-8');
+    const registry: RigsRegistry = JSON.parse(data);
+
+    return Object.entries(registry.rigs).map(([name, config]) => ({
+      id: `rig-${name}`,
+      name,
+      repo: config.git_url,
+      prefix: config.beads.prefix,
+      state: 'active' as RigState,
+    }));
+  } catch (error) {
+    console.error('[Beads API] Failed to read rigs.json:', error);
+    return [];
+  }
+}
+
+/**
  * Derive convoys from feature/molecule issues
  * A convoy represents a work stream with multiple related issues
  * OPTIMIZED: Uses Map lookups instead of array filters
@@ -414,11 +457,18 @@ export async function GET() {
     const { witnesses, polecatsFromGt, refineries } = await fetchGtStatus();
     console.log(`[Beads API] Fetched gt status in ${Date.now() - t2}ms`);
 
-    // Extract rigs from issues
-    const rigs: Rig[] = issues
-      .filter((issue) => issue.labels?.includes('gt:rig'))
-      .map((issue) => parseRigFromIssue(issue))
-      .filter((rig): rig is Rig => rig !== null);
+    // Fetch rigs from rigs.json (canonical source)
+    const rigsFromRegistry = await fetchRigsFromRegistry();
+
+    // Fallback: Extract rigs from issues if registry is empty (legacy support)
+    let rigs: Rig[] = rigsFromRegistry;
+    if (rigs.length === 0) {
+      rigs = issues
+        .filter((issue) => issue.labels?.includes('gt:rig'))
+        .map((issue) => parseRigFromIssue(issue))
+        .filter((rig): rig is Rig => rig !== null);
+    }
+    console.log(`[Beads API] Found ${rigs.length} rigs`);
 
     // Use polecats from gt status if available, otherwise fall back to beads
     let polecats: Polecat[] = polecatsFromGt;

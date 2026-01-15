@@ -2,6 +2,7 @@
  * API Route: POST /api/polecats/[name]/nudge
  * Sends a nudge message to a polecat
  * Executes: gt nudge <rig>/<name> -m <message>
+ * Message is optional - empty nudge defaults to "nudge"
  */
 
 import { NextRequest, NextResponse } from 'next/server';
@@ -10,7 +11,7 @@ import { execGt } from '@/lib/exec-gt';
 export const dynamic = 'force-dynamic';
 
 interface NudgeRequest {
-  message: string;
+  message?: string;  // Optional - empty nudge is valid
   rig: string;
 }
 
@@ -29,13 +30,6 @@ export async function POST(
       );
     }
 
-    if (!body.message || typeof body.message !== 'string') {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      );
-    }
-
     if (!body.rig || typeof body.rig !== 'string') {
       return NextResponse.json(
         { error: 'Rig is required' },
@@ -43,13 +37,8 @@ export async function POST(
       );
     }
 
-    const message = body.message.trim();
-    if (message.length === 0) {
-      return NextResponse.json(
-        { error: 'Message cannot be empty' },
-        { status: 400 }
-      );
-    }
+    // Default to "nudge" if message is empty
+    const message = (body.message || '').trim() || 'nudge';
 
     // Sanitize inputs to prevent command injection
     const sanitizedRig = body.rig.replace(/[^a-zA-Z0-9_-]/g, '');

@@ -140,11 +140,7 @@ export function ConvoyDetail({
       </div>
 
       {/* Details Section */}
-      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 grid grid-cols-2 gap-4 text-sm">
-        <div>
-          <span className="text-zinc-500 dark:text-zinc-400">Assigned To</span>
-          <p className="text-blue-600 dark:text-blue-400">{convoy.assignee || 'Unassigned'}</p>
-        </div>
+      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 grid grid-cols-3 gap-4 text-sm">
         <div>
           <span className="text-zinc-500 dark:text-zinc-400">Total Issues</span>
           <p className="text-zinc-900 dark:text-zinc-100">{convoy.issues.length}</p>

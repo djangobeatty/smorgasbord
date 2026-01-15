@@ -147,11 +147,7 @@ export function ConvoyDetailModal({
           </div>
 
           {/* Details Section */}
-          <div className="p-6 border-b border-border grid grid-cols-2 gap-4 text-sm">
-            <div>
-              <span className="text-muted-foreground">Assigned To</span>
-              <p className="text-blue-400 mt-1">{convoy.assignee || 'Unassigned'}</p>
-            </div>
+          <div className="p-6 border-b border-border grid grid-cols-3 gap-4 text-sm">
             <div>
               <span className="text-muted-foreground">Total Issues</span>
               <p className="text-foreground mt-1">{convoy.issues.length}</p>

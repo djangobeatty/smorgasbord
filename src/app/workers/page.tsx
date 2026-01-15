@@ -65,11 +65,6 @@ export default function WorkersPage() {
   const totalWithMail = polecats.filter(p => p.unread_mail > 0).length + crew.filter(c => c.mailCount > 0).length;
 
   const handleNudge = useCallback(async (name: string, rig: string, type: 'crew' | 'polecat') => {
-    if (!messageText.trim()) {
-      setStatusMessage({ type: 'error', text: 'Message cannot be empty' });
-      return;
-    }
-
     setIsSending(true);
     setStatusMessage(null);
 
@@ -741,7 +736,7 @@ export default function WorkersPage() {
                                 <div className="flex gap-2">
                                   <Button
                                     onClick={() => handleNudge(member.name, member.rig, 'crew')}
-                                    disabled={isSending || !messageText.trim()}
+                                    disabled={isSending}
                                     size="sm"
                                   >
                                     {isSending ? 'Sending...' : 'Send'}
@@ -886,7 +881,7 @@ export default function WorkersPage() {
                                 <div className="flex gap-2">
                                   <Button
                                     onClick={() => handleNudge(polecat.name, polecat.rig, 'polecat')}
-                                    disabled={isSending || !messageText.trim()}
+                                    disabled={isSending}
                                     size="sm"
                                   >
                                     {isSending ? 'Sending...' : 'Send'}

@@ -97,18 +97,8 @@ export function ConvoyCard({ convoy, issues = [], onClick, onContextMenu }: Conv
         </div>
       </div>
 
-      {/* Details row - matching beads layout */}
-      <div className="flex items-center justify-between text-xs mb-3">
-        <div className="flex items-center gap-2">
-          {convoy.assignee && convoy.assignee !== 'Unassigned' && (
-            <span className="rounded bg-zinc-100 px-1.5 py-0.5 font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">
-              {convoy.assignee}
-            </span>
-          )}
-          {(!convoy.assignee || convoy.assignee === 'Unassigned') && (
-            <span className="text-zinc-400 dark:text-zinc-500">Unassigned</span>
-          )}
-        </div>
+      {/* Details row */}
+      <div className="flex items-center justify-end text-xs mb-3">
         <span className="text-zinc-400 dark:text-zinc-500">
           {formatRelativeTime(convoy.updated_at)}
         </span>
