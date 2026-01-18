@@ -75,6 +75,7 @@ export interface Convoy {
     completed: number;
     total: number;
   };
+  assignee?: string;
   created_at: string;
   updated_at: string;
 }

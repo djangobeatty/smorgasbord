@@ -8,10 +8,6 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { execGt } from './exec-gt';
 
-export interface BeadsReaderConfig {
-  beadsPath: string;
-}
-
 /**
  * Resolve a beads path, following redirect files if present
  * A redirect file contains the relative path to the actual beads directory
@@ -146,12 +142,6 @@ export async function readAllIssues(rigPaths: Record<string, string>): Promise<s
   return allLines.join('\n');
 }
 
-/**
- * Get the beads path from environment or default location
- */
-export function getBeadsPath(): string {
-  return process.env.BEADS_PATH ?? path.join(process.cwd(), '..', '..', '..', '.beads');
-}
 
 interface GtStatusRig {
   name: string;
@@ -177,7 +167,7 @@ let cachedBasePath: string | null = null;
 export async function detectRigsFromGtStatus(): Promise<{ basePath: string; rigPaths: Record<string, string> }> {
   try {
     const { stdout } = await execGt('gt status --json', {
-      timeout: 5000,
+      timeout: 15000,
     });
 
     const data: GtStatusOutput = JSON.parse(stdout.trim());
@@ -228,21 +218,13 @@ export function getRigPaths(): Record<string, string> {
     return paths;
   }
 
-  // Default: single rig at relative path
-  return {
-    default: getBeadsPath(),
-  };
+  // No rigs detected - fail explicitly
+  throw new Error('No rigs detected. Either gt status --json must succeed, or set GT_RIGS env var.');
 }
 
 export class BeadsReader {
-  private beadsPath: string;
-  private rigPaths: Record<string, string>;
+  private rigPaths: Record<string, string> = {};
   private initialized: boolean = false;
-
-  constructor(config?: BeadsReaderConfig) {
-    this.beadsPath = config?.beadsPath ?? getBeadsPath();
-    this.rigPaths = getRigPaths();
-  }
 
   /**
    * Initialize by auto-detecting rigs from gt status
@@ -251,9 +233,13 @@ export class BeadsReader {
   async initialize(): Promise<void> {
     if (this.initialized) return;
 
+    // First try to detect rigs from gt status
     const { rigPaths } = await detectRigsFromGtStatus();
     if (Object.keys(rigPaths).length > 0) {
       this.rigPaths = rigPaths;
+    } else {
+      // Fall back to getRigPaths (uses cache or env vars)
+      this.rigPaths = getRigPaths();
     }
     this.initialized = true;
   }
@@ -262,11 +248,8 @@ export class BeadsReader {
     // Auto-initialize on first call
     await this.initialize();
 
-    // Always aggregate from all detected rigs
-    if (Object.keys(this.rigPaths).length > 0) {
-      return readAllIssues(this.rigPaths);
-    }
-    return readIssuesJsonl(this.beadsPath);
+    // Aggregate from all detected rigs
+    return readAllIssues(this.rigPaths);
   }
 
   async getRigNames(): Promise<string[]> {

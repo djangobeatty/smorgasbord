@@ -71,8 +71,16 @@ interface GtStatusOutput {
 
 /**
  * Fetch convoys from gt convoy list --json with full details
+ * Uses cached convoy data as fallback when detail fetches fail
  */
-async function fetchConvoys(): Promise<Convoy[]> {
+async function fetchConvoys(cachedConvoys?: Convoy[]): Promise<Convoy[]> {
+  // Build lookup map from cached convoys for fallback
+  const cachedConvoyMap = new Map<string, Convoy>();
+  if (cachedConvoys) {
+    for (const c of cachedConvoys) {
+      cachedConvoyMap.set(c.id, c);
+    }
+  }
   try {
     const { stdout } = await execGt('gt convoy list --all --json', {
       timeout: 5000, // Reduced from 10s
@@ -135,7 +143,17 @@ async function fetchConvoys(): Promise<Convoy[]> {
         };
       } catch (error) {
         console.error(`Error fetching convoy details for ${c.id}:`, error);
-        // If details fetch fails for open convoy, default to active (not stalled)
+        // If details fetch fails, try to use cached convoy data
+        const cached = cachedConvoyMap.get(c.id);
+        if (cached && cached.issues.length > 0) {
+          console.log(`[Convoy ${c.id}] Using cached data with ${cached.issues.length} issues`);
+          return {
+            ...cached,
+            title: c.title, // Use fresh title in case it changed
+            updated_at: c.updated_at || cached.updated_at,
+          };
+        }
+        // No cache available, return minimal data
         return {
           id: c.id,
           title: c.title,
@@ -495,9 +513,9 @@ export async function GET() {
       (issue) => issue.issue_type !== 'agent' && !issue.labels?.includes('gt:rig')
     );
 
-    // Fetch convoys from gt convoy list
+    // Fetch convoys from gt convoy list (pass cached convoys for fallback)
     const t3 = Date.now();
-    const convoys = await fetchConvoys();
+    const convoys = await fetchConvoys(beadsCache?.data?.convoys);
     console.log(`[Beads API] Fetched ${convoys.length} convoys in ${Date.now() - t3}ms`);
 
     const responseData = {

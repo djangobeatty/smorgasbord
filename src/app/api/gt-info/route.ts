@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getResolvedGtRoot } from '@/lib/exec-gt';
-import { getBeadsPath, getRigPaths } from '@/lib/beads-reader';
+import { getRigPaths } from '@/lib/beads-reader';
 import { promises as fs } from 'fs';
 import { join } from 'path';
 
@@ -18,29 +18,23 @@ export async function GET() {
   try {
     const gtRoot = getResolvedGtRoot();
 
-    // Get the resolved beads path (env var or fallback)
-    const resolvedBeadsPath = getBeadsPath();
-    const rigPaths = getRigPaths();
-
-    // Determine beads source
+    // Get rig paths (throws if not configured)
+    let rigPaths: Record<string, string> = {};
     let beadsSource = 'not configured';
-    if (process.env.BEADS_PATH) {
-      beadsSource = 'BEADS_PATH env var';
-    } else if (Object.keys(rigPaths).length > 0) {
-      beadsSource = 'auto-detected from rigs';
-    } else {
-      beadsSource = 'relative path fallback';
+    try {
+      rigPaths = getRigPaths();
+      beadsSource = process.env.GT_RIGS ? 'GT_RIGS env var' : 'auto-detected from gt status';
+    } catch {
+      beadsSource = 'not configured (gt status failed and GT_RIGS not set)';
     }
 
     return NextResponse.json({
       gtRoot,
       source: gtRoot ? 'GT_BASE_PATH' : 'not configured',
       envVar: process.env.GT_BASE_PATH || null,
-      beadsPath: process.env.BEADS_PATH || null,
-      resolvedBeadsPath,
       beadsSource,
       rigPaths,
-      configured: gtRoot !== null,
+      configured: gtRoot !== null && Object.keys(rigPaths).length > 0,
     });
   } catch (error) {
     console.error('Error getting GT info:', error);

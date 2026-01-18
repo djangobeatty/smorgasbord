@@ -143,9 +143,16 @@ export function KanbanBoard({ issues, onStatusChange, highlightedIssueId, select
       grouped[columnId].push(issue);
     });
 
-    // Sort by priority within each column
+    // Sort by most recent first, then by priority as tiebreaker
     Object.values(grouped).forEach((columnIssues) => {
-      columnIssues.sort((a, b) => a.priority - b.priority);
+      columnIssues.sort((a, b) => {
+        // Primary sort: most recent updated_at first
+        const aTime = new Date(a.updated_at || a.created_at || 0).getTime();
+        const bTime = new Date(b.updated_at || b.created_at || 0).getTime();
+        if (bTime !== aTime) return bTime - aTime;
+        // Secondary sort: priority (lower = higher priority)
+        return a.priority - b.priority;
+      });
     });
 
     return grouped;
