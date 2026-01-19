@@ -9,7 +9,7 @@ import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { getBeadsReader } from '@/lib/beads-reader';
 import { getGtStatus, execGt, getResolvedGtRoot } from '@/lib/exec-gt';
-import type { Issue, Rig, Polecat, Witness, Agent, RoleType, AgentState, RigState, Convoy, WitnessStatus, Refinery, RefineryStatus } from '@/types/beads';
+import type { Issue, Rig, Polecat, Witness, Agent, RoleType, AgentState, RigState, Convoy, WitnessStatus, Refinery, RefineryStatus, QueueItem, PullRequest } from '@/types/beads';
 
 // Type for rigs.json registry
 interface RigsRegistry {
@@ -167,6 +167,65 @@ async function fetchConvoys(cachedConvoys?: Convoy[]): Promise<Convoy[]> {
 }
 
 /**
+ * Fetch queue items for a refinery
+ */
+async function fetchRefineryQueue(rigName: string): Promise<QueueItem[]> {
+  try {
+    const { stdout } = await execGt(`gt refinery queue ${rigName}`, {
+      timeout: 5000,
+      cwd: process.env.GT_BASE_PATH || process.cwd(),
+    });
+    if (!stdout || stdout.trim() === '') return [];
+    // Parse each line as a queue item (format varies, try to extract branch/PR info)
+    const lines = stdout.trim().split('\n').filter(line => line.trim().length > 0);
+    return lines.map((line, idx) => {
+      const trimmed = line.trim();
+      // Try to parse branch name from the line
+      const branchMatch = trimmed.match(/^([a-zA-Z0-9_/-]+)/);
+      return {
+        id: `queue-${idx}`,
+        title: trimmed,
+        branch: branchMatch?.[1],
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Fetch current PR status for a refinery
+ */
+async function fetchRefineryStatus(rigName: string): Promise<PullRequest | null> {
+  try {
+    const { stdout } = await execGt(`gt refinery status ${rigName}`, {
+      timeout: 5000,
+      cwd: process.env.GT_BASE_PATH || process.cwd(),
+    });
+    if (!stdout || stdout.trim() === '') return null;
+    // Try to parse PR info from status output
+    // Look for patterns like "Processing PR #123" or "branch: feature/foo"
+    const prMatch = stdout.match(/PR\s*#?(\d+)/i) || stdout.match(/pull[_\s]?request[:\s]+#?(\d+)/i);
+    const branchMatch = stdout.match(/branch[:\s]+([a-zA-Z0-9_/-]+)/i);
+    const titleMatch = stdout.match(/title[:\s]+(.+?)(?:\n|$)/i);
+
+    if (prMatch) {
+      return {
+        number: parseInt(prMatch[1], 10),
+        title: titleMatch?.[1]?.trim() || '',
+        branch: branchMatch?.[1] || '',
+        author: '',
+        createdAt: '',
+        url: '',
+      };
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Fetch witnesses, polecats, and refineries from gt status --json
  */
 async function fetchGtStatus(): Promise<{ witnesses: Witness[]; polecatsFromGt: Polecat[]; refineries: Refinery[] }> {
@@ -180,6 +239,9 @@ async function fetchGtStatus(): Promise<{ witnesses: Witness[]; polecatsFromGt: 
     if (!gtStatus) {
       return { witnesses, polecatsFromGt, refineries };
     }
+
+    // Collect rig names that have refineries for queue depth lookup
+    const refineryRigs: string[] = [];
 
     if (gtStatus.rigs) {
       for (const rig of gtStatus.rigs) {
@@ -224,13 +286,15 @@ async function fetchGtStatus(): Promise<{ witnesses: Witness[]; polecatsFromGt: 
                 status = 'active';
               }
 
+              refineryRigs.push(rig.name);
               refineries.push({
                 id: agent.address,
                 name: agent.name,
                 rig: rig.name,
                 status,
-                queueDepth: 0, // TODO: Get actual queue depth from gt refinery queue
-                currentPR: null, // TODO: Get current PR from gt refinery status
+                queueDepth: 0, // Will be populated below
+                queueItems: [], // Will be populated below
+                currentPR: null, // Will be populated below
                 pendingPRs: [],
                 lastProcessedAt: null,
                 agent_state: agent.running ? (agent.has_work ? 'active' : 'idle') : 'done',
@@ -239,6 +303,21 @@ async function fetchGtStatus(): Promise<{ witnesses: Witness[]; polecatsFromGt: 
             }
           }
         }
+      }
+    }
+
+    // Fetch queue items and status for all refineries in parallel
+    if (refineries.length > 0) {
+      const queuePromises = refineries.map(r => fetchRefineryQueue(r.rig));
+      const statusPromises = refineries.map(r => fetchRefineryStatus(r.rig));
+      const [queues, statuses] = await Promise.all([
+        Promise.all(queuePromises),
+        Promise.all(statusPromises),
+      ]);
+      for (let i = 0; i < refineries.length; i++) {
+        refineries[i].queueItems = queues[i];
+        refineries[i].queueDepth = queues[i].length;
+        refineries[i].currentPR = statuses[i];
       }
     }
   } catch (error) {

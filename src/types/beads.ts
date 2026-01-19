@@ -114,12 +114,19 @@ export interface PullRequest {
   url: string;
 }
 
+export interface QueueItem {
+  id: string;
+  title?: string;
+  branch?: string;
+}
+
 export interface Refinery {
   id: string;
   name: string;
   rig: string;
   status: RefineryStatus;
   queueDepth: number;
+  queueItems: QueueItem[];
   currentPR: PullRequest | null;
   pendingPRs: PullRequest[];
   lastProcessedAt: string | null;

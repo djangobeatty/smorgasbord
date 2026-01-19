@@ -1118,25 +1118,55 @@ export default function Dashboard() {
                 ) : refineries.length === 0 ? (
                   <p className="text-sm text-muted-foreground">No refineries configured</p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     {refineries.map((refinery) => (
-                      <div key={refinery.rig} className="flex items-center justify-between rounded-md border border-border bg-muted p-2">
-                        <div className="flex items-center gap-3">
-                          <div className={`h-2 w-2 rounded-full ${refinery.status === 'processing' ? 'bg-chart-2' : refinery.status === 'active' ? 'bg-chart-1' : 'bg-muted-foreground'}`} />
-                          <span className="font-mono text-sm font-medium text-foreground">{refinery.rig}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
+                      <div key={refinery.rig} className="rounded-md border border-border bg-muted p-3">
+                        {/* Header row */}
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-3">
+                            <div className={`h-2.5 w-2.5 rounded-full ${refinery.status === 'processing' ? 'bg-chart-2 animate-pulse' : refinery.status === 'active' ? 'bg-chart-1' : 'bg-muted-foreground'}`} />
+                            <span className="font-mono text-sm font-medium text-foreground">{refinery.rig}</span>
+                          </div>
                           {refinery.queueDepth > 0 && (
                             <span className="rounded-full bg-chart-4/20 px-2 py-0.5 text-xs font-medium text-chart-4">
                               {refinery.queueDepth} queued
                             </span>
                           )}
-                          {refinery.currentPR && (
-                            <span className="text-xs text-muted-foreground">
-                              Processing #{refinery.currentPR.number}
-                            </span>
-                          )}
                         </div>
+
+                        {/* Current PR being processed */}
+                        {refinery.currentPR && (
+                          <div className="mb-2 rounded bg-chart-2/10 px-2 py-1.5 text-xs">
+                            <span className="text-chart-2 font-medium">Processing:</span>
+                            <span className="ml-1.5 text-foreground">
+                              PR #{refinery.currentPR.number}
+                              {refinery.currentPR.title && ` - ${refinery.currentPR.title}`}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Queue items */}
+                        {refinery.queueItems && refinery.queueItems.length > 0 && (
+                          <div className="space-y-1">
+                            <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Queue</div>
+                            {refinery.queueItems.slice(0, 5).map((item, idx) => (
+                              <div key={item.id} className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <span className="text-muted-foreground/50">{idx + 1}.</span>
+                                <span className="truncate">{item.title || item.branch || 'Unknown'}</span>
+                              </div>
+                            ))}
+                            {refinery.queueItems.length > 5 && (
+                              <div className="text-[10px] text-muted-foreground">
+                                + {refinery.queueItems.length - 5} more
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Empty state */}
+                        {!refinery.currentPR && refinery.queueDepth === 0 && (
+                          <div className="text-xs text-muted-foreground">Idle - no work queued</div>
+                        )}
                       </div>
                     ))}
                   </div>

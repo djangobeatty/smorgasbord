@@ -303,8 +303,11 @@ export default function SystemPage() {
     }, `Refinery ${action} for ${rig} completed`);
   };
 
+  // View-only action - no refresh needed (prevents scroll to top)
   const handleRefineryView = async (rig: string, action: string) => {
-    await performAction(`refinery-${action}-${rig}`, async () => {
+    const actionKey = `refinery-${action}-${rig}`;
+    setIsPerformingAction(prev => ({ ...prev, [actionKey]: true }));
+    try {
       const response = await fetch(`/api/refinery/${action}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -316,7 +319,14 @@ export default function SystemPage() {
         title: `${action.charAt(0).toUpperCase() + action.slice(1)} - ${rig}`,
         output: data.output || 'No output',
       });
-    }, `Retrieved refinery ${action}`);
+    } catch (error) {
+      setActionStatus({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to view refinery info',
+      });
+    } finally {
+      setIsPerformingAction(prev => ({ ...prev, [actionKey]: false }));
+    }
   };
 
   // Dogs actions
