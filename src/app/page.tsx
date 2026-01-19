@@ -983,20 +983,9 @@ export default function Dashboard() {
                         </span>
                       )}
                     </div>
-                    {/* Show up to 3 activity lines */}
-                    <div className="space-y-1">
-                      <div className="text-sm text-foreground truncate" title={agent.activity}>
-                        {agent.activity}
-                      </div>
-                      {agent.activities?.slice(1, 3).map((act, idx) => (
-                        <div
-                          key={idx}
-                          className="text-xs text-muted-foreground truncate"
-                          title={act}
-                        >
-                          {act}
-                        </div>
-                      ))}
+                    {/* Show activity with natural wrapping */}
+                    <div className="text-sm text-foreground">
+                      {agent.activity}
                     </div>
                   </div>
                 ))}

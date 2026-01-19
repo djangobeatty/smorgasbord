@@ -29,13 +29,18 @@ function isUiChrome(line: string): boolean {
   const trimmed = line.trim();
   if (!trimmed) return true;
   if (trimmed.startsWith('─')) return true;
-  if (trimmed.startsWith('│')) return true;
+  // Only filter pure border lines, not table rows with content
+  if (trimmed.match(/^[│├┤]+\s*$/)) return true;
   if (trimmed.startsWith('╭') || trimmed.startsWith('╰')) return true;
   if (trimmed.includes('bypass permissions')) return true;
   if (trimmed.includes('shift+tab')) return true;
   if (trimmed.includes('⏵⏵')) return true;
   if (trimmed.includes('/ide for')) return true;
-  if (trimmed.match(/^[▐▛▜▘▝]+$/)) return true;
+  if (trimmed.match(/^[▐▛▜▘▝\s]+$/)) return true;
+  // Filter out lines that are mostly spinner/block chars with path or model name
+  if (trimmed.match(/^[▐▛▜▘▝█\s]+/)) return true;
+  // Filter out status bar lines (framed content like path, model, user)
+  if (trimmed.match(/^│.*│\s*$/) && !trimmed.includes('→')) return true;
   // Filter out prompt lines (input prompt with or without text)
   if (trimmed.startsWith('❯')) return true;
   // Filter out common prompt indicators
@@ -49,7 +54,9 @@ function isUiChrome(line: string): boolean {
  * Returns current activity plus last 3 meaningful activities for history
  */
 function parseActivity(output: string): { activity: string; activities: string[]; duration?: string; tool?: string } {
-  const lines = output.split('\n');
+  // Strip ANSI escape sequences
+  const cleanOutput = output.replace(/\x1b\[[0-9;]*[a-zA-Z]/g, '').replace(/\^?\[/g, '');
+  const lines = cleanOutput.split('\n');
   const reversedLines = [...lines].reverse();
   const recentActivities: string[] = [];
 
@@ -83,6 +90,21 @@ function parseActivity(output: string): { activity: string; activities: string[]
     // Match running command
     if (line.includes('Running…') || line.includes('Running...')) {
       addActivity('Running command...');
+      continue;
+    }
+
+    // Also collect meaningful output lines (not UI chrome, not completion markers)
+    if (!isUiChrome(line)) {
+      const trimmed = line.trim();
+      // Skip completion markers for history
+      if (/^[✻✶✢]\s+\w+\s+for\s+\d+/.test(trimmed)) continue;
+      // Skip very short lines
+      if (trimmed.length < 15) continue;
+      // Skip table borders
+      if (trimmed.match(/^[┌┐└┘├┤┬┴┼─│]+$/)) continue;
+      // Skip mid-sentence continuations
+      if (trimmed.match(/^[a-z)}\]]/)) continue;
+      addActivity(trimmed);
     }
   }
 
@@ -119,9 +141,12 @@ function parseActivity(output: string): { activity: string; activities: string[]
   // Check if actively thinking (has ellipsis pattern)
   const isActivelyThinking = /[✻✶✢]\s+.+?(?:…|\.\.\.)/.test(output);
 
-  // If at prompt (has ❯ and not actively processing)
-  const hasPrompt = output.includes('❯') && !isActivelyThinking && !output.includes('⏺');
-  if (hasPrompt) {
+  // Check if at prompt by looking at the last few non-empty lines (not just anywhere in output)
+  // The prompt line contains ❯ and typically has ↵ send nearby
+  const nonEmptyLines = lines.filter(l => l.trim().length > 0);
+  const lastFewLines = nonEmptyLines.slice(-8).join('\n');
+  const hasPromptAtEnd = lastFewLines.includes('❯') && !isActivelyThinking;
+  if (hasPromptAtEnd) {
     // Find lines with actual content (not just UI chrome or completion markers)
     const contentLines = lines.filter(l => {
       if (isUiChrome(l)) return false;
@@ -134,18 +159,28 @@ function parseActivity(output: string): { activity: string; activities: string[]
     // Get the last few meaningful lines
     const lastContent = contentLines.slice(-3).join(' ').trim();
     if (lastContent.length > 0) {
-      // Truncate to reasonable length
-      const truncated = lastContent.length > 80 ? lastContent.slice(0, 77) + '...' : lastContent;
-      return { activity: `Idle: ${truncated}`, activities: recentActivities };
+      return { activity: `Idle: ${lastContent}`, activities: recentActivities };
     }
 
     return { activity: 'Idle', activities: recentActivities };
   }
 
-  // Try to find any recent output as fallback (filter out UI chrome)
-  const meaningfulLines = lines.filter(l => !isUiChrome(l));
+  // Try to find any recent output as fallback (filter out UI chrome and completion markers)
+  const meaningfulLines = lines.filter(l => {
+    if (isUiChrome(l)) return false;
+    const trimmed = l.trim();
+    // Filter out completion markers like "✻ Brewed for 2m 38s"
+    if (/^[✻✶✢]\s+\w+\s+for\s+\d+/.test(trimmed)) return false;
+    // Skip very short lines (partial text, fragments)
+    if (trimmed.length < 15) return false;
+    // Skip table borders
+    if (trimmed.match(/^[┌┐└┘├┤┬┴┼─│]+$/)) return false;
+    // Skip mid-sentence continuations (start with lowercase or closing punctuation)
+    if (trimmed.match(/^[a-z)}\]]/)) return false;
+    return true;
+  });
   if (meaningfulLines.length > 0) {
-    const lastLine = meaningfulLines[meaningfulLines.length - 1].trim().slice(0, 60);
+    const lastLine = meaningfulLines[meaningfulLines.length - 1].trim();
     return { activity: lastLine || 'Active', activities: recentActivities };
   }
 
