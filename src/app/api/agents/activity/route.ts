@@ -87,9 +87,10 @@ function parseActivity(output: string): { activity: string; activities: string[]
       continue;
     }
 
-    // Match running command
-    if (line.includes('Running…') || line.includes('Running...')) {
-      addActivity('Running command...');
+    // Match running command with command text
+    const runningMatch = line.match(/Running[…\.]+\s*(.+)/);
+    if (runningMatch) {
+      addActivity(`Running: ${runningMatch[1].trim()}`);
       continue;
     }
 
@@ -132,9 +133,10 @@ function parseActivity(output: string): { activity: string; activities: string[]
       };
     }
 
-    // Match running command
-    if (line.includes('Running…') || line.includes('Running...')) {
-      return { activity: 'Running command...', activities: recentActivities };
+    // Match running command with command text
+    const runningMatch = line.match(/Running[…\.]+\s*(.+)/);
+    if (runningMatch) {
+      return { activity: `Running: ${runningMatch[1].trim()}`, activities: recentActivities };
     }
   }
 
