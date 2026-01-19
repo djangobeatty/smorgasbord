@@ -12,6 +12,20 @@ import type { CrewState, CrewMember } from '@/types/crew';
 import type { MailMessage } from '@/types/mail';
 import Link from 'next/link';
 
+/**
+ * Check if a bead is a project work item (not internal system bead)
+ * Only show task/feature/bug/convoy that aren't wisps
+ */
+function isProjectBead(issue: Issue): boolean {
+  // Wisps are always internal regardless of type
+  if (issue.id.includes('-wisp-')) return false;
+  // Digests are squashed molecules
+  if (issue.title.startsWith('Digest: ')) return false;
+  // Only these types are project work
+  const projectTypes = ['task', 'feature', 'bug', 'convoy'];
+  return projectTypes.includes(issue.issue_type);
+}
+
 interface CrewMemberDisplay {
   name: string;
   rig: string;
@@ -310,7 +324,7 @@ export default function Dashboard() {
   // Active work calculations
   const activeConvoys = convoys.filter(c => c.status === 'active' || c.status === 'stalled');
   const issues = data?.issues ?? [];
-  const activeIssues = issues.filter(i => i.status === 'in_progress' || i.status === 'hooked');
+  const activeIssues = issues.filter(i => (i.status === 'in_progress' || i.status === 'hooked') && isProjectBead(i));
 
   // Helper to find which convoy an issue belongs to
   const getConvoyForIssue = (issueId: string) => {
