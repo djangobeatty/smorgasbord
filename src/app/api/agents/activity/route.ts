@@ -81,9 +81,7 @@ function parseActivity(output: string): { activity: string; activities: string[]
     // Match tool use: ⏺ Tool(args)
     const toolMatch = line.match(/⏺\s+(\w+)\((.+?)\)/);
     if (toolMatch) {
-      const tool = toolMatch[1];
-      const args = toolMatch[2].slice(0, 40) + (toolMatch[2].length > 40 ? '...' : '');
-      addActivity(`${tool}: ${args}`);
+      addActivity(`${toolMatch[1]}: ${toolMatch[2]}`);
       continue;
     }
 
@@ -124,12 +122,10 @@ function parseActivity(output: string): { activity: string; activities: string[]
     // Match tool use: ⏺ Tool(args)
     const toolMatch = line.match(/⏺\s+(\w+)\((.+?)\)/);
     if (toolMatch) {
-      const tool = toolMatch[1];
-      const args = toolMatch[2].slice(0, 50) + (toolMatch[2].length > 50 ? '...' : '');
       return {
-        activity: `${tool}: ${args}`,
+        activity: `${toolMatch[1]}: ${toolMatch[2]}`,
         activities: recentActivities,
-        tool,
+        tool: toolMatch[1],
       };
     }
 
