@@ -23,6 +23,24 @@ interface AgentActivity {
 }
 
 /**
+ * Check if a line is UI chrome (not meaningful activity)
+ */
+function isUiChrome(line: string): boolean {
+  const trimmed = line.trim();
+  if (!trimmed) return true;
+  if (trimmed.startsWith('─')) return true;
+  if (trimmed.startsWith('│')) return true;
+  if (trimmed.startsWith('╭') || trimmed.startsWith('╰')) return true;
+  if (trimmed.includes('bypass permissions')) return true;
+  if (trimmed.includes('shift+tab')) return true;
+  if (trimmed.includes('⏵⏵')) return true;
+  if (trimmed.includes('/ide for')) return true;
+  if (trimmed.match(/^[▐▛▜▘▝]+$/)) return true;
+  if (trimmed.startsWith('❯') && trimmed.length < 3) return true;
+  return false;
+}
+
+/**
  * Parse tmux output to extract current activity and history
  * Extracts meaningful context from the visible pane content
  * Returns current activity plus last 3 meaningful activities for history
@@ -100,24 +118,7 @@ function parseActivity(output: string): { activity: string; activities: string[]
   if (hasPrompt) {
     // Look for Claude's last response (starts after ⏺ and before ❯)
     // Find lines with actual content (not just UI chrome)
-    const contentLines: string[] = [];
-    for (const line of lines) {
-      const trimmed = line.trim();
-      // Skip empty lines, UI elements, and decorative lines
-      if (!trimmed) continue;
-      if (trimmed.startsWith('─')) continue;
-      if (trimmed.startsWith('│')) continue;
-      if (trimmed.startsWith('╭') || trimmed.startsWith('╰')) continue;
-      if (trimmed.includes('bypass permissions')) continue;
-      if (trimmed.includes('shift+tab')) continue;
-      if (trimmed.includes('⏵⏵')) continue;
-      if (trimmed.includes('/ide for')) continue;
-      if (trimmed.match(/^[▐▛▜▘▝]+$/)) continue;
-      if (trimmed.startsWith('❯') && trimmed.length < 3) continue;
-
-      // This looks like actual content
-      contentLines.push(trimmed);
-    }
+    const contentLines = lines.filter(l => !isUiChrome(l)).map(l => l.trim());
 
     // Get the last few meaningful lines
     const lastContent = contentLines.slice(-3).join(' ').trim();
@@ -130,10 +131,10 @@ function parseActivity(output: string): { activity: string; activities: string[]
     return { activity: 'At prompt', activities: recentActivities };
   }
 
-  // Try to find any recent output as fallback
-  const nonEmptyLines = lines.filter(l => l.trim().length > 0 && !l.includes('───'));
-  if (nonEmptyLines.length > 0) {
-    const lastLine = nonEmptyLines[nonEmptyLines.length - 1].trim().slice(0, 60);
+  // Try to find any recent output as fallback (filter out UI chrome)
+  const meaningfulLines = lines.filter(l => !isUiChrome(l));
+  if (meaningfulLines.length > 0) {
+    const lastLine = meaningfulLines[meaningfulLines.length - 1].trim().slice(0, 60);
     return { activity: lastLine || 'Active', activities: recentActivities };
   }
 
