@@ -60,9 +60,11 @@ export default function Dashboard() {
     name: string;
     role: string;
     activity: string;
+    activities: string[];
     duration?: string;
     tool?: string;
   }>>([]);
+  const [activitiesLoading, setActivitiesLoading] = useState(true);
 
   // Fetch crew details for branch info
   useEffect(() => {
@@ -115,6 +117,8 @@ export default function Dashboard() {
         }
       } catch (error) {
         console.error('Error fetching agent activities:', error);
+      } finally {
+        setActivitiesLoading(false);
       }
     };
     fetchActivities();
@@ -465,7 +469,7 @@ export default function Dashboard() {
         </FeatureGate>
 
         {/* MESSAGES SECTION - Recent Mail */}
-        {inboxMessages.length > 0 && (
+        {(inboxLoading || inboxMessages.length > 0) && (
           <div className="mb-8 rounded-xl border border-border bg-card p-6 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -477,7 +481,7 @@ export default function Dashboard() {
                   </svg>
                 )}
                 <h2 className="text-lg font-semibold text-foreground">Messages</h2>
-                {inboxMessages.filter(m => !m.read).length > 0 && (
+                {!inboxLoading && inboxMessages.filter(m => !m.read).length > 0 && (
                   <span className="rounded-full bg-primary/20 px-2 py-0.5 text-xs font-semibold text-primary">
                     {inboxMessages.filter(m => !m.read).length} unread
                   </span>
@@ -491,6 +495,25 @@ export default function Dashboard() {
               </Link>
             </div>
 
+            {inboxLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse rounded-lg border border-border p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="h-8 w-8 rounded-full bg-muted-foreground/30" />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-4 w-24 rounded bg-muted-foreground/30" />
+                          <div className="ml-auto h-3 w-12 rounded bg-muted-foreground/20" />
+                        </div>
+                        <div className="h-4 w-3/4 rounded bg-muted-foreground/20 mb-2" />
+                        <div className="h-3 w-full rounded bg-muted-foreground/15" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
             <div className="space-y-3">
               {/* Latest 3 messages from unique senders */}
               {(() => {
@@ -599,6 +622,7 @@ export default function Dashboard() {
                 );
               })}
             </div>
+            )}
           </div>
         )}
 
@@ -887,7 +911,7 @@ export default function Dashboard() {
         </div>
 
         {/* AGENT ACTIVITY SECTION */}
-        {agentActivities.length > 0 && (
+        {(activitiesLoading || agentActivities.length > 0) && (
           <div className="mb-8">
             <div className="mb-4 flex items-center gap-2">
               {isKawaii ? (
@@ -899,38 +923,71 @@ export default function Dashboard() {
                 </svg>
               )}
               <h2 className="text-xl font-bold text-foreground">Agent Activity</h2>
-              <span className="rounded-full bg-chart-2/20 px-2 py-0.5 text-xs font-semibold text-chart-2">
-                {agentActivities.length} active
-              </span>
+              {!activitiesLoading && (
+                <span className="rounded-full bg-chart-2/20 px-2 py-0.5 text-xs font-semibold text-chart-2">
+                  {agentActivities.length} active
+                </span>
+              )}
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {agentActivities.map((agent) => (
-                <div
-                  key={agent.session}
-                  className="rounded-lg border border-border bg-card p-4 shadow-sm"
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`h-2.5 w-2.5 rounded-full ${
-                      agent.activity === 'Idle' ? 'bg-muted-foreground' :
-                      agent.tool ? 'bg-chart-1' : 'bg-chart-2 animate-pulse'
-                    }`} />
-                    <span className="font-semibold text-foreground">{agent.name}</span>
-                    <span className="rounded-full bg-secondary px-1.5 py-0.5 text-xs font-medium text-secondary-foreground">
-                      {agent.role}
-                    </span>
-                  </div>
-                  <div className="text-sm text-muted-foreground truncate" title={agent.activity}>
-                    {agent.activity}
-                  </div>
-                  {agent.duration && (
-                    <div className="mt-1 text-xs text-muted-foreground">
-                      {agent.duration}
+            {activitiesLoading ? (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="animate-pulse rounded-lg border border-border bg-card p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+                      <div className="h-4 w-20 rounded bg-muted-foreground/30" />
+                      <div className="h-4 w-12 rounded bg-muted-foreground/20" />
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                    <div className="space-y-2">
+                      <div className="h-3 w-full rounded bg-muted-foreground/20" />
+                      <div className="h-3 w-3/4 rounded bg-muted-foreground/15" />
+                      <div className="h-3 w-2/3 rounded bg-muted-foreground/10" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {agentActivities.map((agent) => (
+                  <div
+                    key={agent.session}
+                    className="rounded-lg border border-border bg-card p-4 shadow-sm"
+                  >
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`h-2.5 w-2.5 rounded-full ${
+                        agent.activity === 'Idle' ? 'bg-muted-foreground' :
+                        agent.tool ? 'bg-chart-1' : 'bg-chart-2 animate-pulse'
+                      }`} />
+                      <span className="font-semibold text-foreground">{agent.name}</span>
+                      <span className="rounded-full bg-secondary px-1.5 py-0.5 text-xs font-medium text-secondary-foreground">
+                        {agent.role}
+                      </span>
+                      {agent.duration && (
+                        <span className="ml-auto text-xs text-muted-foreground">
+                          {agent.duration}
+                        </span>
+                      )}
+                    </div>
+                    {/* Show up to 3 activity lines */}
+                    <div className="space-y-1">
+                      <div className="text-sm text-foreground truncate" title={agent.activity}>
+                        {agent.activity}
+                      </div>
+                      {agent.activities?.slice(1, 3).map((act, idx) => (
+                        <div
+                          key={idx}
+                          className="text-xs text-muted-foreground truncate"
+                          title={act}
+                        >
+                          {act}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
