@@ -54,6 +54,10 @@ export default function Dashboard() {
   const [isSendingMail, setIsSendingMail] = useState(false);
   const [actionStatus, setActionStatus] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
+  // Mayor nudge state
+  const [mayorNudgeMessage, setMayorNudgeMessage] = useState('');
+  const [isSendingMayorNudge, setIsSendingMayorNudge] = useState(false);
+
   // Crew messaging state - per-crew messages
   const [crewMessages, setCrewMessages] = useState<Record<string, string>>({});
   const [sendingCrewMessage, setSendingCrewMessage] = useState<string | null>(null);
@@ -187,6 +191,36 @@ export default function Dashboard() {
       });
     } finally {
       setIsSendingMail(false);
+    }
+  };
+
+  // Mayor nudge handler - immediate tap on mayor (message optional)
+  const handleNudgeMayor = async () => {
+    setIsSendingMayorNudge(true);
+    try {
+      const response = await fetch('/api/mayor/nudge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: mayorNudgeMessage.trim() || '',
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to nudge');
+      }
+
+      setActionStatus({ type: 'success', text: mayorNudgeMessage.trim() ? 'Nudged Mayor with message' : 'Nudged Mayor' });
+      setMayorNudgeMessage('');
+      setTimeout(() => setActionStatus(null), 3000);
+    } catch (error) {
+      setActionStatus({
+        type: 'error',
+        text: error instanceof Error ? error.message : 'Failed to nudge Mayor',
+      });
+    } finally {
+      setIsSendingMayorNudge(false);
     }
   };
 
@@ -476,6 +510,31 @@ export default function Dashboard() {
                     </svg>
                   )}
                   Send Instructions
+                </button>
+              </div>
+              {/* Nudge input row */}
+              <div className="mt-4 flex gap-2 items-center">
+                <input
+                  type="text"
+                  value={mayorNudgeMessage}
+                  onChange={(e) => setMayorNudgeMessage(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleNudgeMayor();
+                    }
+                  }}
+                  placeholder="Quick message for Mayor (optional)..."
+                  className="flex-1 px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:border-primary"
+                  disabled={!mayorAgent?.running}
+                />
+                <button
+                  onClick={handleNudgeMayor}
+                  disabled={isSendingMayorNudge || !mayorAgent?.running}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-border bg-muted hover:bg-muted/80 text-foreground disabled:opacity-50 transition-colors"
+                  title={mayorAgent?.running ? "Tap Mayor on shoulder" : "Mayor not running"}
+                >
+                  👋 Nudge
                 </button>
               </div>
             </div>

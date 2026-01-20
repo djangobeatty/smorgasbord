@@ -9,27 +9,14 @@ import { execGt } from '@/lib/exec-gt';
 export const dynamic = 'force-dynamic';
 
 interface NudgeRequest {
-  message: string;
+  message?: string;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: NudgeRequest = await request.json();
 
-    if (!body.message || typeof body.message !== 'string') {
-      return NextResponse.json(
-        { error: 'Message is required' },
-        { status: 400 }
-      );
-    }
-
-    const message = body.message.trim();
-    if (message.length === 0) {
-      return NextResponse.json(
-        { error: 'Message cannot be empty' },
-        { status: 400 }
-      );
-    }
+    const message = (body.message || '').trim();
 
     if (message.length > 1000) {
       return NextResponse.json(
@@ -38,13 +25,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Escape message for shell safety
-    const escapedMessage = message.replace(/'/g, "'\\''");
+    // Build command - message is optional
+    let command = 'gt nudge mayor';
+    if (message) {
+      // Escape message for shell safety
+      const escapedMessage = message.replace(/'/g, "'\\''");
+      command = `gt nudge mayor '${escapedMessage}'`;
+    }
 
     try {
       // Execute gt nudge mayor command
       const { stdout, stderr } = await execGt(
-        `gt nudge mayor '${escapedMessage}'`,
+        command,
         {
           timeout: 10000,
           cwd: process.env.GT_BASE_PATH || process.cwd(),
