@@ -19,6 +19,14 @@ export interface Dependency {
   created_by: string;
 }
 
+export interface Comment {
+  id: number;
+  issue_id: string;
+  author: string;
+  text: string;
+  created_at: string;
+}
+
 export interface Issue {
   id: string;
   title: string;
@@ -34,6 +42,7 @@ export interface Issue {
   labels?: string[];
   hook_bead?: string;
   role_bead?: string;
+  parent?: string;
   _rig?: string; // Added by beads-reader for multi-rig support
 }
 

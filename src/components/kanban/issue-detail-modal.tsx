@@ -2,7 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { formatRelativeTime } from '@/lib/utils';
-import type { Issue, Priority, IssueStatus } from '@/types/beads';
+import type { Issue, Priority, IssueStatus, Comment } from '@/types/beads';
 import { useEffect, useCallback, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,7 @@ interface IssueDetailModalProps {
   onClose: () => void;
   onViewInKanban?: () => void;
   onUpdate?: (issue: Issue) => void;
+  onOpenIssue?: (issueId: string) => void;
 }
 
 const priorityConfig: Record<Priority, { label: string; color: string }> = {
@@ -57,7 +58,7 @@ interface EditState {
   labels: string;
 }
 
-export function IssueDetailModal({ issue, onClose, onViewInKanban, onUpdate }: IssueDetailModalProps) {
+export function IssueDetailModal({ issue, onClose, onViewInKanban, onUpdate, onOpenIssue }: IssueDetailModalProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -69,8 +70,10 @@ export function IssueDetailModal({ issue, onClose, onViewInKanban, onUpdate }: I
     assignee: '',
     labels: '',
   });
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [loadingComments, setLoadingComments] = useState(false);
 
-  // Reset edit state when issue changes
+  // Reset edit state and fetch comments when issue changes
   useEffect(() => {
     if (issue) {
       setEditState({
@@ -83,6 +86,21 @@ export function IssueDetailModal({ issue, onClose, onViewInKanban, onUpdate }: I
       });
       setIsEditing(false);
       setError(null);
+
+      // Fetch comments
+      setLoadingComments(true);
+      const rigParam = issue._rig ? `?rig=${encodeURIComponent(issue._rig)}` : '';
+      fetch(`/api/beads/issues/${issue.id}/comments${rigParam}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setComments(data);
+          } else {
+            setComments([]);
+          }
+        })
+        .catch(() => setComments([]))
+        .finally(() => setLoadingComments(false));
     }
   }, [issue]);
 
@@ -202,6 +220,17 @@ export function IssueDetailModal({ issue, onClose, onViewInKanban, onUpdate }: I
               <span className="font-mono">{issue.id}</span>
               <span>·</span>
               <span className="capitalize">{issue.issue_type}</span>
+              {issue.parent && (
+                <>
+                  <span>·</span>
+                  <button
+                    onClick={() => onOpenIssue?.(issue.parent!)}
+                    className="font-mono text-blue-500 hover:underline"
+                  >
+                    ↑ {issue.parent}
+                  </button>
+                </>
+              )}
             </div>
             {isEditing ? (
               <Input
@@ -348,6 +377,33 @@ export function IssueDetailModal({ issue, onClose, onViewInKanban, onUpdate }: I
             </div>
           )}
         </div>
+
+        {/* Comments */}
+        {(comments.length > 0 || loadingComments) && (
+          <div className="border-t border-border p-4">
+            <div className="text-xs font-medium text-muted-foreground">
+              Comments {comments.length > 0 && `(${comments.length})`}
+            </div>
+            {loadingComments ? (
+              <div className="mt-2 text-sm text-muted-foreground">Loading...</div>
+            ) : (
+              <div className="mt-2 space-y-3">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="rounded bg-muted/50 p-3">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="font-medium">{comment.author}</span>
+                      <span>·</span>
+                      <span>{formatRelativeTime(comment.created_at)}</span>
+                    </div>
+                    <div className="mt-1 whitespace-pre-wrap text-sm text-foreground/80">
+                      {comment.text}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Dependencies (read-only) */}
         {issue.dependencies && issue.dependencies.length > 0 && (

@@ -603,6 +603,12 @@ function WorkPageContent() {
             // Refresh to sync with server
             refreshIssues();
           }}
+          onOpenIssue={(issueId) => {
+            const issue = issues.find(i => i.id === issueId);
+            if (issue) {
+              setSelectedIssue(issue);
+            }
+          }}
         />
       </main>
 
