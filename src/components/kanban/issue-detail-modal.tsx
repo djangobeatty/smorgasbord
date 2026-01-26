@@ -378,6 +378,30 @@ export function IssueDetailModal({ issue, onClose, onViewInKanban, onUpdate, onO
           )}
         </div>
 
+        {/* Acceptance Criteria */}
+        {issue.acceptance_criteria && (
+          <div className="border-t border-border p-4">
+            <div className="text-xs font-medium text-muted-foreground">
+              Acceptance Criteria
+            </div>
+            <div className="mt-2 whitespace-pre-wrap text-sm text-foreground/80">
+              {issue.acceptance_criteria}
+            </div>
+          </div>
+        )}
+
+        {/* Notes */}
+        {issue.notes && (
+          <div className="border-t border-border p-4">
+            <div className="text-xs font-medium text-muted-foreground">
+              Notes
+            </div>
+            <div className="mt-2 whitespace-pre-wrap text-sm text-foreground/80">
+              {issue.notes}
+            </div>
+          </div>
+        )}
+
         {/* Comments */}
         {(comments.length > 0 || loadingComments) && (
           <div className="border-t border-border p-4">

@@ -43,6 +43,8 @@ export interface Issue {
   hook_bead?: string;
   role_bead?: string;
   parent?: string;
+  acceptance_criteria?: string;
+  notes?: string;
   _rig?: string; // Added by beads-reader for multi-rig support
 }
 
