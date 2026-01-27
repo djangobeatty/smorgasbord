@@ -45,6 +45,7 @@ export interface Issue {
   parent?: string;
   acceptance_criteria?: string;
   notes?: string;
+  design?: string; // JSON test harness config for nano factory
   _rig?: string; // Added by beads-reader for multi-rig support
 }
 

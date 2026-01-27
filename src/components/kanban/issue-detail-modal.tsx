@@ -390,6 +390,27 @@ export function IssueDetailModal({ issue, onClose, onViewInKanban, onUpdate, onO
           </div>
         )}
 
+        {/* Design (Test Harness) */}
+        {issue.design && (
+          <div className="border-t border-border p-4">
+            <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+              <span>Design</span>
+              <span className="rounded bg-blue-500/20 px-1.5 py-0.5 text-blue-400">
+                nano factory
+              </span>
+            </div>
+            <pre className="mt-2 overflow-x-auto rounded bg-muted p-3 text-xs text-foreground/80">
+              {(() => {
+                try {
+                  return JSON.stringify(JSON.parse(issue.design), null, 2);
+                } catch {
+                  return issue.design;
+                }
+              })()}
+            </pre>
+          </div>
+        )}
+
         {/* Notes */}
         {issue.notes && (
           <div className="border-t border-border p-4">

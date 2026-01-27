@@ -40,7 +40,7 @@ interface BeadsCache {
   timestamp: number;
 }
 let beadsCache: BeadsCache | null = null;
-const BEADS_CACHE_TTL = 5000; // 5 second TTL (matches polling interval)
+const BEADS_CACHE_TTL = 30000; // 30 second TTL - convoys are expensive to fetch
 
 // Types for gt status --json response
 interface GtStatusAgent {
